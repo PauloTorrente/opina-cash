@@ -57,6 +57,16 @@ const Message = styled.p`
   margin-top: 1rem;
 `;
 
+const TermsLink = styled.a`
+  font-size: 0.9rem;
+  color: #9b5de5;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 1rem;
+  display: block;
+  text-align: center;
+`;
+
 const Register = () => {
   const [formData, setFormData] = useState({
     email: '',
@@ -72,6 +82,7 @@ const Register = () => {
     firstName: false,
     lastName: false,
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -83,8 +94,8 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (Object.values(formError).includes(true) || Object.values(formData).includes('')) {
-      setError("Por favor, complete todos los campos obligatorios.");
+    if (Object.values(formError).includes(true) || Object.values(formData).includes('') || !acceptedTerms) {
+      setError("Por favor, complete todos los campos obligatorios y acepte los términos y condiciones.");
       return;
     }
     try {
@@ -98,11 +109,15 @@ const Register = () => {
   };
 
   const handleNextStep = () => {
-    if (Object.values(formError).includes(true) || Object.values(formData).includes('')) {
-      setError("Por favor, complete todos los campos obligatorios.");
+    if (Object.values(formError).includes(true) || Object.values(formData).includes('') || !acceptedTerms) {
+      setError("Por favor, complete todos los campos obligatorios y acepte los términos y condiciones.");
     } else {
       navigate('/register-detail');
     }
+  };
+
+  const handleTermsAccept = () => {
+    setAcceptedTerms(!acceptedTerms);
   };
 
   return (
@@ -146,6 +161,19 @@ const Register = () => {
             error={formError.lastName}
             required
           />
+          
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1rem' }}>
+            <input
+              type="checkbox"
+              id="terms"
+              checked={acceptedTerms}
+              onChange={handleTermsAccept}
+            />
+            <TermsLink href="/terms" target="_blank">
+              Aceptar términos y condiciones
+            </TermsLink>
+          </div>
+
           <Button type="submit">Registrar</Button>
         </form>
         {error && <Message error>{error}</Message>}

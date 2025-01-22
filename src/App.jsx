@@ -1,9 +1,9 @@
 import { Routes, Route } from 'react-router-dom';
 // import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
-import Login from './pages/login';
-import Register from './pages/register';
-import RegisterDetail from './pages/registerDetail'; 
+import Login from './pages/Login';
+import Register from './pages/Register';
+import RegisterDetail from './pages/RegisterDetail'; 
 import './App.css';
 
 function App() {
@@ -20,5 +20,5 @@ function App() {
     </div>
   );
 }
-
+// update
 export default App;

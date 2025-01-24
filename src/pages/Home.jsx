@@ -33,7 +33,7 @@ const Subtitle = styled.p`
 `;
 
 const Logo = styled.img`
-  width: 150px;  // Ajuste do tamanho da logo
+  width: 150px;
   margin-bottom: 2rem;
 `;
 
@@ -62,16 +62,11 @@ const SurveyInfoSection = styled.section`
   text-align: center;
 `;
 
-const SurveyInfoTitle = styled.h2`
-  color: #333;
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-`;
-
 const SurveyInfoText = styled.p`
-  font-size: 1.1rem;
-  color: #777;
-  margin-bottom: 2rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1.5rem;
 `;
 
 const Footer = styled.footer`
@@ -100,56 +95,50 @@ const ctaButtonVariants = {
 
 const Home = () => {
   const [userChoice, setUserChoice] = useState(null);
-  const [showStartButton, setShowStartButton] = useState(true);  // Estado para controlar visibilidade do botão
+  const [showStartButton, setShowStartButton] = useState(true);
   const navigate = useNavigate();
 
   const handleChoice = (choice) => {
     setUserChoice(choice);
     if (choice === "new") {
-      navigate('/register'); // Redireciona para a página de registro
+      navigate('/register');
     } else {
-      navigate('/login'); // Redireciona para a página de login
+      navigate('/login');
     }
   };
 
   const handleStartNow = () => {
-    setShowStartButton(false);  // Oculta o botão "Comienza ahora" após ser clicado
-    setUserChoice(null);         // Reseta o estado do usuário para exibir as opções
+    setShowStartButton(false);
+    setUserChoice(null);
   };
 
   return (
     <Container>
-      {/* Header Section */}
       <Header variants={headerVariants} initial="hidden" animate="visible">
         <Logo src={logo} alt="Enova Pulse Logo" />
         <Title>Bienvenido a Opina Cash</Title>
-        <Subtitle>Tu solución para encuestas rápidas y automatizadas</Subtitle>
+        <Subtitle>Donde tu opinión paga</Subtitle>
         {showStartButton && (
           <CTAButton variants={ctaButtonVariants} whileHover={{ scale: 1.05 }} onClick={handleStartNow}>
-            Comienza ahora
+            Empieza a ganar ahora
           </CTAButton>
         )}
       </Header>
 
-      {/* Pergunta para escolher entre novo ou já registrado */}
       {userChoice === null && !showStartButton && (
         <SurveyInfoSection>
-          <SurveyInfoTitle>¿Eres nuevo o ya tienes cuenta?</SurveyInfoTitle>
+          <SurveyInfoText>¿Eres nuevo o ya tienes cuenta?</SurveyInfoText>
           <CTAButton onClick={() => handleChoice('new')}>Soy nuevo</CTAButton>
           <CTAButton onClick={() => handleChoice('existing')}>Ya tengo cuenta</CTAButton>
         </SurveyInfoSection>
       )}
 
-      {/* Survey Info Section */}
       <SurveyInfoSection>
-        <SurveyInfoTitle>¿Por qué elegir Enova Pulse?</SurveyInfoTitle>
         <SurveyInfoText>
-          Nuestra plataforma te permite crear encuestas dirigidas a tu audiencia en menos de 10 minutos. Nos encargamos de la distribución, procesamiento y recompensas, para que puedas enfocarte en lo que realmente importa: los conocimientos y el crecimiento.
+          Responde encuestas, desde tu celular, en menos de 5 minutos y gana 7 pesos por cada una. ¡Recibe tu pago al instante vía Nequi!
         </SurveyInfoText>
-        <CTAButton whileHover={{ scale: 1.05 }}>Aprende más</CTAButton>
       </SurveyInfoSection>
 
-      {/* Footer Section */}
       <Footer>
         <FooterText>&copy; 2025 Enova Pulse - Todos los derechos reservados</FooterText>
       </Footer>

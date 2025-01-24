@@ -16,7 +16,7 @@ const FormContainer = styled.div`
 
 const FormTitle = styled.h2`
   text-align: center;
-  color: #9b5de5;
+  color: #6c63ff;
   margin-bottom: 1.5rem;
 `;
 
@@ -24,7 +24,7 @@ const Input = styled.input`
   width: 100%;
   padding: 0.8rem;
   margin: 0.5rem 0;
-  border: 1px solid ${props => props.error ? '#f00' : '#d6a7e1'};
+  border: 1px solid ${props => props.error ? '#f00' : '#6c63ff'};
   border-radius: 8px;
   font-size: 1rem;
 `;
@@ -45,26 +45,29 @@ const Button = styled.button`
   }
 `;
 
-const OptionalText = styled.span`
-  font-size: 0.8rem;
-  color: #888;
-`;
-
 const Message = styled.p`
   text-align: center;
-  color: ${props => props.error ? '#f00' : '#9b5de5'};
+  color: ${props => props.error ? '#f00' : '#6c63ff'};
   font-size: 1rem;
   margin-top: 1rem;
 `;
 
+const TermsContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+`;
+
+const Checkbox = styled.input`
+  margin-right: 8px;
+`;
+
 const TermsLink = styled.a`
   font-size: 0.9rem;
-  color: #9b5de5;
+  color: #6c63ff;
   cursor: pointer;
   text-decoration: underline;
-  margin-top: 1rem;
-  display: block;
-  text-align: center;
 `;
 
 const Register = () => {
@@ -99,7 +102,10 @@ const Register = () => {
       return;
     }
     try {
-      const response = await axios.post('https://enova-backend.onrender.com/api/auth/register', formData);
+      const response = await axios.post('https://enova-backend.onrender.com/api/auth/register', {
+        ...formData,
+        role: "user" 
+      });
       console.log(response.data);
       navigate('/register-detail');
     } catch (error) {
@@ -162,8 +168,8 @@ const Register = () => {
             required
           />
           
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '1rem' }}>
-            <input
+          <TermsContainer>
+            <Checkbox
               type="checkbox"
               id="terms"
               checked={acceptedTerms}
@@ -172,7 +178,7 @@ const Register = () => {
             <TermsLink href="/terms" target="_blank">
               Aceptar términos y condiciones
             </TermsLink>
-          </div>
+          </TermsContainer>
 
           <Button type="submit">Registrar</Button>
         </form>
@@ -180,7 +186,7 @@ const Register = () => {
         <Message>
           Puedes completar la información adicional ahora o más tarde.
         </Message>
-        <Button onClick={handleNextStep} style={{ backgroundColor: '#9b5de5' }}>
+        <Button onClick={handleNextStep} style={{ backgroundColor: '#6c63ff' }}>
           Completar ahora
         </Button>
       </FormContainer>

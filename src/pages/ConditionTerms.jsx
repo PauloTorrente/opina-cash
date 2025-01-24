@@ -3,45 +3,66 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 
 const TermsContainer = styled.div`
-  width: 100%;
+  width: 90%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem;
   background-color: #fff5f8;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+  }
 `;
 
 const Title = styled.h2`
   text-align: center;
   color: #9b5de5;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
 `;
 
 const TermsText = styled.p`
   font-size: 1rem;
   color: #333;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   line-height: 1.6;
+  text-align: justify;
+
+  @media (max-width: 480px) {
+    font-size: 0.9rem;
+  }
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
+  margin-top: 1.5rem;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 1rem;
+  }
 `;
 
 const Button = styled.button`
-  width: 48%;
+  flex: 1;
   padding: 1rem;
   background-color: #f7b7a3;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
+  text-align: center;
 
   &:hover {
     background-color: #f4a59d;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
   }
 `;
 

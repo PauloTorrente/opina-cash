@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { motion } from 'framer-motion';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/api';
+import Button from '../components/Button';
+import InputField from '../components/InputField';
 import styled from 'styled-components';
+import AuthContext from '../context/AuthContext';
 
 const FormContainer = styled.div`
   width: 100%;
@@ -15,93 +18,50 @@ const FormContainer = styled.div`
 
 const FormTitle = styled.h2`
   text-align: center;
-  color: #9b5de5;
+  color: #6c63ff;
   margin-bottom: 1.5rem;
 `;
 
-const Input = styled.input`
-  width: 100%;
-  padding: 0.8rem;
-  margin: 0.5rem 0;
-  border: 1px solid #d6a7e1;
-  border-radius: 8px;
-  font-size: 1rem;
-`;
-
-const Button = styled.button`
-  width: 100%;
-  padding: 1rem;
-  margin-top: 1.5rem;
-  background-color: #f7b7a3;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f4a59d;
-  }
-`;
-
-const Message = styled.p`
-  text-align: center;
-  color: #9b5de5;
-  font-size: 1rem;
-  margin-top: 1rem;
-`;
-
 const Login = () => {
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: '',
-  });
-
+  const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials({ ...credentials, [name]: value });
-  };
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('https://enova-backend.onrender.com/api/auth/login', credentials);
-      console.log(response.data);
-      alert("¡Login exitoso!");
-      // Salvar token, redirecionar ou realizar outras ações
+      const data = await loginUser(credentials);
+      login(data); // Atualiza o estado do usuário no AuthContext
+      navigate('/'); // Redireciona para a página inicial após o login
     } catch (error) {
-      console.error(error);
-      setError("Error al iniciar sesión, verifique sus credenciales.");
+      setError('Error al iniciar sesión, verifique sus credenciales.');
     }
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-      <FormContainer>
-        <FormTitle>Iniciar sesión</FormTitle>
-        <form onSubmit={handleSubmit}>
-          <Input
-            type="email"
-            name="email"
-            placeholder="Correo electrónico"
-            onChange={handleChange}
-            required
-          />
-          <Input
-            type="password"
-            name="password"
-            placeholder="Contraseña"
-            onChange={handleChange}
-            required
-          />
-          <Button type="submit">Entrar</Button>
-        </form>
-        {error && <Message>{error}</Message>}
-      </FormContainer>
-    </motion.div>
+    <FormContainer>
+      <FormTitle>Iniciar sesión</FormTitle>
+      <form onSubmit={handleSubmit}>
+        <InputField
+          type="email"
+          name="email"
+          placeholder="Correo electrónico"
+          value={credentials.email}
+          onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+        />
+        <InputField
+          type="password"
+          name="password"
+          placeholder="Contraseña"
+          value={credentials.password}
+          onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+        />
+        <Button type="submit">Entrar</Button>
+      </form>
+      {error && <p>{error}</p>}
+    </FormContainer>
   );
 };
-// update
+
 export default Login;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useNavigate, useParams } from 'react-router-dom'; // Para capturar o token da URL
+import { useNavigate, useParams } from 'react-router-dom'; 
 
 // Styled Components
 const Container = styled.div`
@@ -51,13 +51,12 @@ const CTAButton = styled.button`
 `;
 
 const RegistrationSuccess = () => {
-  const { confirmationToken } = useParams(); // Captura o token da URL
+  const { confirmationToken } = useParams(); 
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    // Fazendo a requisição para confirmar o registro
     const confirmRegistration = async () => {
       try {
         const response = await fetch(`https://enova-backend.onrender.com/api/users/confirm/${confirmationToken}`);
@@ -80,7 +79,7 @@ const RegistrationSuccess = () => {
   }, [confirmationToken]);
 
   const handleLoginRedirect = () => {
-    navigate('/login'); // Redireciona para a página de login
+    navigate('/login'); 
   };
 
   return (

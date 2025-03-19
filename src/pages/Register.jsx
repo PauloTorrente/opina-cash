@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import SuccessModal from '../components/SuccessModal';
 import InputField from '../components/InputField';
 import Button from '../components/Button';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorDisplay from '../components/ErrorDisplay';
 
 // Styled components
 const FormContainer = styled.div`
@@ -27,13 +29,6 @@ const FormTitle = styled.h2`
   text-align: center;
   color: #6c63ff;
   margin-bottom: 1.5rem;
-`;
-
-const Message = styled.p`
-  text-align: center;
-  color: ${props => (props.error ? '#f00' : '#6c63ff')};
-  font-size: 1rem;
-  margin-top: 1rem;
 `;
 
 const TermsContainer = styled.div`
@@ -65,7 +60,7 @@ const Register = () => {
     firstName: '',
     lastName: '',
   });
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState([]); // Lista de erros
   const [fieldErrors, setFieldErrors] = useState({
     firstName: '',
     lastName: '',
@@ -74,6 +69,7 @@ const Register = () => {
   });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Estado de loading
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -99,7 +95,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setIsLoading(true); // Ativa o loading
+    setErrors([]); // Limpa os erros anteriores
 
     const newFieldErrors = {
       firstName: formData.firstName.trim() === '' ? 'Este campo es obligatorio.' : '',
@@ -111,7 +108,8 @@ const Register = () => {
     setFieldErrors(newFieldErrors);
 
     if (Object.values(newFieldErrors).some(error => error !== '') || !acceptedTerms) {
-      setError("Por favor, corrige los errores en el formulario y acepta los términos y condiciones.");
+      setErrors(["Por favor, corrige los errores en el formulario y acepta los términos y condiciones."]);
+      setIsLoading(false); // Desativa o loading
       return;
     }
 
@@ -125,10 +123,12 @@ const Register = () => {
     } catch (error) {
       console.error('Error en el registro:', error.response ? error.response.data : error);
       if (error.response && error.response.data.message === 'Email is already registered') {
-        setFieldErrors({ ...fieldErrors, email: 'Este correo electrónico ya está registrado.' });
+        setErrors(['Este correo electrónico ya está registrado.']);
       } else {
-        setError(error.response?.data.message || "Error al conectar con el servidor. Por favor, intenta de nuevo más tarde.");
+        setErrors([error.response?.data.message || "Error al conectar con el servidor. Por favor, intenta de nuevo más tarde."]);
       }
+    } finally {
+      setIsLoading(false); // Desativa o loading
     }
   };
 
@@ -191,12 +191,16 @@ const Register = () => {
             </TermsLink>
           </TermsContainer>
 
-          <Button type="submit" fullWidth>
-            Registrarse
-          </Button>
-          <Message>Puedes completar la información adicional más tarde.</Message>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <Button type="submit" fullWidth>
+              Registrarse
+            </Button>
+          )}
+
+          <ErrorDisplay errors={errors} />
         </form>
-        {error && <Message error>{error}</Message>}
       </FormContainer>
 
       {showSuccessModal && <SuccessModal onClose={handleCloseModal} />}

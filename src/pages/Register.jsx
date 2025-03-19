@@ -8,6 +8,7 @@ import InputField from '../components/InputField';
 import Button from '../components/Button';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorDisplay from '../components/ErrorDisplay';
+import PasswordStrength from '../components/PasswordStrength';
 
 // Styled components
 const FormContainer = styled.div`
@@ -49,9 +50,15 @@ const TermsLink = styled.a`
   text-decoration: underline;
 `;
 
-// Validation functions
+// Funções de validação
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-const validatePassword = (password) => password.length >= 6;
+const validatePassword = (password) => {
+  const hasLetters = /[a-zA-Z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const isLongEnough = password.length >= 8;
+  return isLongEnough && hasLetters && hasNumbers && hasSpecialChars;
+};
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -60,7 +67,7 @@ const Register = () => {
     firstName: '',
     lastName: '',
   });
-  const [errors, setErrors] = useState([]); // Lista de erros
+  const [errors, setErrors] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({
     firstName: '',
     lastName: '',
@@ -69,7 +76,7 @@ const Register = () => {
   });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Estado de loading
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -85,7 +92,7 @@ const Register = () => {
     if (name === 'email' && value.trim() !== '' && !validateEmail(value)) {
       errorMessage = 'Correo electrónico inválido.';
     } else if (name === 'password' && value.trim() !== '' && !validatePassword(value)) {
-      errorMessage = 'La contraseña debe tener al menos 6 caracteres.';
+      errorMessage = 'La contraseña debe tener al menos 8 caracteres, incluir letras, números y caracteres especiales.';
     } else if ((name === 'firstName' || name === 'lastName') && value.trim() === '') {
       errorMessage = 'Este campo es obligatorio.';
     }
@@ -95,21 +102,21 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Ativa o loading
-    setErrors([]); // Limpa os erros anteriores
+    setIsLoading(true);
+    setErrors([]);
 
     const newFieldErrors = {
       firstName: formData.firstName.trim() === '' ? 'Este campo es obligatorio.' : '',
       lastName: formData.lastName.trim() === '' ? 'Este campo es obligatorio.' : '',
       email: formData.email.trim() === '' ? 'Este campo es obligatorio.' : !validateEmail(formData.email) ? 'Correo electrónico inválido.' : '',
-      password: formData.password.trim() === '' ? 'Este campo es obligatorio.' : !validatePassword(formData.password) ? 'La contraseña debe tener al menos 6 caracteres.' : '',
+      password: formData.password.trim() === '' ? 'Este campo es obligatorio.' : !validatePassword(formData.password) ? 'La contraseña debe tener al menos 8 caracteres, incluir letras, números y caracteres especiales.' : '',
     };
 
     setFieldErrors(newFieldErrors);
 
     if (Object.values(newFieldErrors).some(error => error !== '') || !acceptedTerms) {
       setErrors(["Por favor, corrige los errores en el formulario y acepta los términos y condiciones."]);
-      setIsLoading(false); // Desativa o loading
+      setIsLoading(false);
       return;
     }
 
@@ -128,13 +135,13 @@ const Register = () => {
         setErrors([error.response?.data.message || "Error al conectar con el servidor. Por favor, intenta de nuevo más tarde."]);
       }
     } finally {
-      setIsLoading(false); // Desativa o loading
+      setIsLoading(false);
     }
   };
 
   const handleCloseModal = () => {
     setShowSuccessModal(false);
-    navigate('/login'); // Redireciona para a página de login
+    navigate('/login');
   };
 
   return (
@@ -178,6 +185,7 @@ const Register = () => {
             onBlur={handleBlur}
             error={fieldErrors.password}
           />
+          <PasswordStrength password={formData.password} />
 
           <TermsContainer>
             <Checkbox

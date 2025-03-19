@@ -7,51 +7,59 @@ import RegistrationSuccess from './pages/RegistrationSuccess';
 import ConditionTerms from './pages/ConditionTerms';
 import Survey from './pages/Survey';
 import SurveyAccess from './pages/SurveyAccess';
-import Results from './pages/Results'; // Componente unificado
+import Results from './pages/Results';
 import Navbar from './components/Navbar';
 import PrivateRoute from './routes/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
+import styled from 'styled-components';
+
+
+const MainContent = styled.div`
+  padding-top: 80px; 
+`;
 
 function App() {
   return (
     <AuthProvider>
       <div>
-      <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/register-detail" element={<RegisterDetail />} />
-          <Route path="/register-success/:confirmationToken" element={<RegistrationSuccess />} />
-          <Route path="/terms" element={<ConditionTerms />} />
-          <Route path="/survey" element={<SurveyAccess />} />
+        <Navbar />
+        <MainContent>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/register-detail" element={<RegisterDetail />} />
+            <Route path="/register-success/:confirmationToken" element={<RegistrationSuccess />} />
+            <Route path="/terms" element={<ConditionTerms />} />
+            <Route path="/survey" element={<SurveyAccess />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/survey/respond"
-            element={
-              <PrivateRoute>
-                <Survey />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/results"
-            element={
-              <PrivateRoute>
-                <Results /> {/* Lista de enquetes */}
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/results/:surveyId"
-            element={
-              <PrivateRoute>
-                <Results /> {/* Detalhes da enquete */}
-              </PrivateRoute>
-            }
-          />
-        </Routes>
+            {/* Protected routes */}
+            <Route
+              path="/survey/respond"
+              element={
+                <PrivateRoute>
+                  <Survey />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/results"
+              element={
+                <PrivateRoute>
+                  <Results />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/results/:surveyId"
+              element={
+                <PrivateRoute>
+                  <Results />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </MainContent>
       </div>
     </AuthProvider>
   );

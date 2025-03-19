@@ -21,6 +21,9 @@ const ModalContent = styled(motion.div)`
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 400px;
+  margin: 0 auto;
 `;
 
 const ModalTitle = styled.h2`
@@ -44,6 +47,7 @@ const ModalButton = styled.button`
 `;
 
 const SuccessModal = ({ onClose }) => {
+  console.log('SuccessModal renderizado'); // Log para depuração
   return (
     <ModalOverlay
       initial={{ opacity: 0 }}
@@ -57,7 +61,7 @@ const SuccessModal = ({ onClose }) => {
       >
         <ModalTitle>¡Registro Exitoso!</ModalTitle>
         <p>Por favor, revisa tu correo electrónico para confirmar tu cuenta.</p>
-        <ModalButton onClick={onClose}>Ir a la página de inicio</ModalButton>
+        <ModalButton onClick={onClose}>Ir a la página de login</ModalButton>
       </ModalContent>
     </ModalOverlay>
   );

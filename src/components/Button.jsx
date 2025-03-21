@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
-const Button = styled.button`
+const ButtonStyled = styled.button`
+  width: ${(props) => (props.$fullWidth ? '100%' : 'auto')};
   background-color: #6c63ff;
   color: white;
   font-size: 1.2rem;
@@ -14,5 +15,9 @@ const Button = styled.button`
     transform: scale(1.05);
   }
 `;
+
+const Button = ({ fullWidth, ...props }) => {
+  return <ButtonStyled $fullWidth={fullWidth} {...props} />;
+};
 
 export default Button;

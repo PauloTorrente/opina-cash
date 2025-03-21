@@ -22,6 +22,12 @@ const FormTitle = styled.h2`
   margin-bottom: 1.5rem;
 `;
 
+const ErrorMessage = styled.p`
+  color: #ff4d4d;
+  text-align: center;
+  margin-top: 1rem;
+`;
+
 const Login = () => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
@@ -30,12 +36,21 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(''); // Limpa o erro anterior
+
     try {
       const data = await loginUser(credentials);
       login(data); // Atualiza o estado do usuário no AuthContext
       navigate('/'); // Redireciona para a página inicial após o login
     } catch (error) {
-      setError('Error al iniciar sesión, verifique sus credenciales.');
+      // Verifica o tipo de erro e exibe a mensagem correspondente
+      if (error.message === 'The email or password may be incorrect.') {
+        setError('El correo electrónico o la contraseña pueden ser incorrectos.');
+      } else if (error.message === 'Please confirm your email before logging in.') {
+        setError('Por favor, confirma tu correo electrónico antes de iniciar sesión.');
+      } else {
+        setError('Error al iniciar sesión. Por favor, inténtalo de nuevo más tarde.');
+      }
     }
   };
 
@@ -59,7 +74,7 @@ const Login = () => {
         />
         <Button type="submit">Entrar</Button>
       </form>
-      {error && <p>{error}</p>}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
     </FormContainer>
   );
 };

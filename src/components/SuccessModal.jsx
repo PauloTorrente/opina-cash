@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 
@@ -46,8 +46,30 @@ const ModalButton = styled.button`
   }
 `;
 
+const CountdownText = styled.p`
+  color: #555;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+`;
+
 const SuccessModal = ({ onClose }) => {
-  console.log('SuccessModal renderizado'); // Log para depuração
+  const [showButton, setShowButton] = useState(false);
+  const [countdown, setCountdown] = useState(10);
+
+  useEffect(() => {
+    // Inicia o contador de 10 segundos
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev > 1) return prev - 1;
+        clearInterval(timer); // Para o contador quando chegar a 0
+        setShowButton(true); // Mostra o botão após 10 segundos
+        return 0;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer); // Limpa o timer ao desmontar o componente
+  }, []);
+
   return (
     <ModalOverlay
       initial={{ opacity: 0 }}
@@ -61,7 +83,14 @@ const SuccessModal = ({ onClose }) => {
       >
         <ModalTitle>¡Registro Exitoso!</ModalTitle>
         <p>Por favor, revisa tu correo electrónico para confirmar tu cuenta.</p>
-        <ModalButton onClick={onClose}>Ir a la página de login</ModalButton>
+
+        {!showButton ? (
+          <CountdownText>
+            El botón estará disponible en {countdown} segundos...
+          </CountdownText>
+        ) : (
+          <ModalButton onClick={onClose}>Ir a la página de login</ModalButton>
+        )}
       </ModalContent>
     </ModalOverlay>
   );

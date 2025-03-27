@@ -66,6 +66,14 @@ const RegistrationSuccess = () => {
           const data = await response.json();
           setSuccess(true);
           setMessage(data.message || "Registro confirmado com sucesso!");
+        } else if (response.status === 400) {
+          const data = await response.json();
+          if (data.message === 'Invalid or expired token') {
+            setMessage("O token de confirmação é inválido ou expirou. Solicite um novo link de confirmação.");
+          } else {
+            setMessage("Falha ao confirmar o registro. Tente novamente.");
+          }
+          setSuccess(false);
         } else {
           setSuccess(false);
           setMessage("Falha ao confirmar o registro. Tente novamente.");
@@ -96,4 +104,3 @@ const RegistrationSuccess = () => {
 };
 
 export default RegistrationSuccess;
-

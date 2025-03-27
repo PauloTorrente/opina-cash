@@ -59,6 +59,7 @@ const RegistrationSuccess = () => {
   useEffect(() => {
     const confirmRegistration = async () => {
       try {
+        // Make the API request to confirm the user's registration
         const response = await fetch(`https://enova-backend.onrender.com/api/users/confirm/${confirmationToken}`);
         
         if (response.ok) {
@@ -79,6 +80,7 @@ const RegistrationSuccess = () => {
   }, [confirmationToken]);
 
   const handleLoginRedirect = () => {
+    // Redirect user to the login page after successful confirmation
     navigate('/login'); 
   };
 
@@ -94,3 +96,4 @@ const RegistrationSuccess = () => {
 };
 
 export default RegistrationSuccess;
+

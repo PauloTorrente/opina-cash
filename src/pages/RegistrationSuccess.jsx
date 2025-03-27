@@ -35,6 +35,17 @@ const Subtitle = styled.p`
   margin-bottom: 2rem;
 `;
 
+const ErrorDetails = styled.pre`
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin-top: 1rem;
+`;
+
 const CTAButton = styled.button`
   background-color: #28a745;
   color: white;
@@ -55,32 +66,27 @@ const RegistrationSuccess = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
+  const [errorDetails, setErrorDetails] = useState(null);
 
   useEffect(() => {
     const confirmRegistration = async () => {
       try {
-        // Make the API request to confirm the user's registration
         const response = await fetch(`https://enova-backend.onrender.com/api/users/confirm/${confirmationToken}`);
         
         if (response.ok) {
           const data = await response.json();
           setSuccess(true);
           setMessage(data.message || "Registro confirmado com sucesso!");
-        } else if (response.status === 400) {
-          const data = await response.json();
-          if (data.message === 'Invalid or expired token') {
-            setMessage("O token de confirmação é inválido ou expirou. Solicite um novo link de confirmação.");
-          } else {
-            setMessage("Falha ao confirmar o registro. Tente novamente.");
-          }
-          setSuccess(false);
         } else {
+          const errorData = await response.json();
           setSuccess(false);
-          setMessage("Falha ao confirmar o registro. Tente novamente.");
+          setMessage(errorData.message || "Falha ao confirmar o registro. Tente novamente.");
+          setErrorDetails(JSON.stringify(errorData, null, 2)); // Exibir erro detalhado
         }
       } catch (error) {
         setSuccess(false);
         setMessage("Ocorreu um erro. Tente novamente.");
+        setErrorDetails(error.toString()); // Exibir erro no frontend
       }
     };
 
@@ -88,7 +94,6 @@ const RegistrationSuccess = () => {
   }, [confirmationToken]);
 
   const handleLoginRedirect = () => {
-    // Redirect user to the login page after successful confirmation
     navigate('/login'); 
   };
 
@@ -97,6 +102,7 @@ const RegistrationSuccess = () => {
       <SuccessMessage>
         <Title success={success}>{success ? "¡Registro exitoso!" : "¡Error al confirmar!"}</Title>
         <Subtitle>{message}</Subtitle>
+        {errorDetails && <ErrorDetails>{errorDetails}</ErrorDetails>}
         {success && <CTAButton onClick={handleLoginRedirect}>Iniciar sesión</CTAButton>}
       </SuccessMessage>
     </Container>

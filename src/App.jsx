@@ -8,11 +8,11 @@ import ConditionTerms from './pages/ConditionTerms';
 import Survey from './pages/Survey';
 import SurveyAccess from './pages/SurveyAccess';
 import Results from './pages/Results';
+import CreateSurvey from './pages/CreateSurvey'; 
 import Navbar from './components/Navbar';
 import PrivateRoute from './routes/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
 import styled from 'styled-components';
-
 
 const MainContent = styled.div`
   padding-top: 80px; 
@@ -33,7 +33,7 @@ function App() {
             <Route path="/terms" element={<ConditionTerms />} />
             <Route path="/survey" element={<SurveyAccess />} />
 
-            {/* Protected routes */}
+            {/* Rotas protegidas */}
             <Route
               path="/survey/respond"
               element={
@@ -55,6 +55,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <Results />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/create-survey"
+              element={
+                <PrivateRoute>
+                  <CreateSurvey />
                 </PrivateRoute>
               }
             />

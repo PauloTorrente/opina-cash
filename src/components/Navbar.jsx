@@ -22,22 +22,36 @@ const NavLinks = styled(motion.div)`
   display: flex;
   gap: 1rem;
 
-  @media (max-width: 768px) {
-    flex-direction: column;
-    position: fixed;
-    top: 60px;
-    left: 0;
-    background-color: #6c63ff;
-    width: 100%;
-    padding: 1rem;
-    display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
+  flex-direction: column;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  background-color: #6c63ff;
+  width: 100%;
+  padding: 1rem;
+
+  @media (min-width: 769px) {
+    flex-direction: row;
+    position: initial;
+    background-color: transparent;
+    width: auto;
+    padding: 0;
   }
+
+  display: ${({ $isOpen }) => ($isOpen ? 'flex' : 'none')};
 `;
 
 const NavLink = styled(Link)`
   color: white;
   text-decoration: none;
   font-size: 1rem;
+  padding: 0.5rem;
+
+  /* Ajuste de tamanho da fonte no desktop */
+  @media (min-width: 769px) {
+    font-size: 1.2rem;
+  }
+
   &:hover {
     text-decoration: underline;
   }
@@ -50,17 +64,22 @@ const LogoutButton = styled.button`
   padding: 0.5rem 1rem;
   border-radius: 5px;
   cursor: pointer;
+
+  @media (min-width: 769px) {
+    font-size: 1.1rem;
+  }
+
   &:hover {
     background-color: #f4a59d;
   }
 `;
 
 const Hamburger = styled(motion.div)`
-  display: none;
+  display: flex;
   flex-direction: column;
   cursor: pointer;
 
-  @media (max-width: 768px) {
+  @media (min-width: 769px) {
     display: flex;
   }
 
@@ -75,6 +94,10 @@ const Hamburger = styled(motion.div)`
 const CenterText = styled.div`
   flex: 1;
   text-align: center;
+
+  @media (min-width: 769px) {
+    text-align: left;
+  }
 `;
 
 const Navbar = () => {
@@ -132,10 +155,11 @@ const Navbar = () => {
           >
             {user ? ( // Verifica se o usuário está logado (com base no token)
               <>
-                <NavLink to="/survey">Responder Enquetes</NavLink>
-                {/* Mostra o link de resultados apenas para administradores */}
                 {user.role === 'Admin' && (
-                  <NavLink to="/results">Resultados</NavLink>
+                  <>
+                    <NavLink to="/results">Resultados</NavLink>
+                    <NavLink to="/create-survey">Crear Encuesta</NavLink>
+                  </>
                 )}
                 <LogoutButton onClick={handleLogout}>Cerrar sesión</LogoutButton>
               </>

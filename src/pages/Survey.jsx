@@ -23,21 +23,17 @@ const Survey = () => {
           },
         });
         if (!response.ok) {
-          throw new Error('Erro ao buscar a enquete');
+          throw new Error('Error al obtener la encuesta');
         }
         const data = await response.json();
 
-        // Verifica se a resposta é um array ou um objeto
         const surveysArray = Array.isArray(data) ? data : data.surveys || [];
-
-        // Filtra a enquete pelo token
         const surveyWithToken = surveysArray.find(s => s.accessToken === accessToken);
 
         if (!surveyWithToken) {
-          throw new Error('Enquete não encontrada');
+          throw new Error('Encuesta no encontrada');
         }
 
-        // Verifica se questions já é um objeto ou se precisa ser convertido
         if (typeof surveyWithToken.questions === 'string') {
           surveyWithToken.questions = JSON.parse(surveyWithToken.questions);
         }
@@ -64,12 +60,17 @@ const Survey = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const responseData = Object.keys(responses).map(questionId => ({
-        questionId: parseInt(questionId),
+
+    const responseData = Object.keys(responses)
+      .filter(questionId => responses[questionId] !== undefined && responses[questionId] !== '')
+      .map(questionId => ({
+        questionId: Number(questionId),
         answer: responses[questionId],
       }));
 
+    console.log('Enviando respuestas:', JSON.stringify(responseData, null, 2));
+
+    try {
       const response = await fetch(`https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`, {
         method: 'POST',
         headers: {
@@ -79,26 +80,29 @@ const Survey = () => {
         body: JSON.stringify(responseData),
       });
 
+      const responseText = await response.text();
+      console.log('Respuesta del servidor:', responseText);
+
       if (!response.ok) {
-        throw new Error('Erro ao enviar respostas');
+        throw new Error(`Error al enviar respuestas: ${responseText}`);
       }
 
-      alert('Respostas enviadas com sucesso!');
+      alert('¡Respuestas enviadas con éxito!');
     } catch (error) {
       alert(error.message);
     }
   };
 
   if (loading) {
-    return <Container>Carregando...</Container>;
+    return <Container>Cargando...</Container>;
   }
 
   if (error) {
-    return <Container>Erro: {error}</Container>;
+    return <Container>Error: {error}</Container>;
   }
 
   if (!survey) {
-    return <Container>Enquete não encontrada</Container>;
+    return <Container>Encuesta no encontrada</Container>;
   }
 
   return (
@@ -111,7 +115,7 @@ const Survey = () => {
             {question.type === 'text' && (
               <InputField
                 type="text"
-                placeholder="Sua resposta"
+                placeholder="Tu respuesta"
                 value={responses[question.questionId] || ''}
                 onChange={(e) => handleResponseChange(question.questionId, e.target.value)}
               />
@@ -121,7 +125,7 @@ const Survey = () => {
                 value={responses[question.questionId] || ''}
                 onChange={(e) => handleResponseChange(question.questionId, e.target.value)}
               >
-                <option value="" disabled>Selecione uma opção</option>
+                <option value="" disabled>Selecciona una opción</option>
                 {question.options.map((option, index) => (
                   <option key={index} value={option}>
                     {option}
@@ -131,7 +135,7 @@ const Survey = () => {
             )}
           </QuestionContainer>
         ))}
-        <Button type="submit">Enviar Respostas</Button>
+        <Button type="submit">Enviar respuestas</Button>
       </form>
     </Container>
   );

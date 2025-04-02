@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/montserrat": "^5.2.5",
+    "@fontsource/poppins": "^5.2.5",
     "axios": "^1.7.9",
     "framer-motion": "^12.0.1",
     "googleapis": "^144.0.0",

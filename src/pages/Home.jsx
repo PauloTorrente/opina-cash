@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
-import logo from '../assets/logo.png'; 
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { HeaderContainer, Title, TitleDivider, Subtitle } from '../components/Header';
+import Button from '../components/Button';
+import Footer from '../components/Footer';
+import AuthContext from '../context/AuthContext';
+import logo from '../assets/logo.png';
+import '@fontsource/poppins/700.css';
 
-// Styled Components
 const Container = styled.div`
   background-color: #f8f9fa;
   min-height: 100vh;
@@ -13,135 +17,134 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   font-family: 'Arial', sans-serif;
-`;
-
-const Header = styled(motion.header)`
-  text-align: center;
-  padding: 2rem 1rem;
-`;
-
-const Title = styled.h1`
-  color: #6c63ff;
-  font-size: 3rem;
-  margin-bottom: 1rem;
-`;
-
-const Subtitle = styled.p`
-  font-size: 1.25rem;
-  color: #555;
-  margin-bottom: 2rem;
+  padding: 1rem;
+  position: relative;
 `;
 
 const Logo = styled.img`
-  width: 150px;
-  margin-bottom: 2rem;
-`;
-
-const CTAButton = styled(motion.button)`
-  background-color: #6c63ff;
-  color: white;
-  font-size: 1.2rem;
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: scale(1.05);
+  width: 120px;
+  margin-bottom: 1.5rem;
+  @media (min-width: 768px) {
+    width: 160px;
   }
 `;
 
 const SurveyInfoSection = styled.section`
-  max-width: 800px;
-  padding: 3rem 2rem;
+  width: 100%;
+  padding: 1.5rem;
   background-color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-top: 2rem;
   border-radius: 8px;
   text-align: center;
 `;
 
-const SurveyInfoText = styled.p`
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 1.5rem;
-`;
-
-const Footer = styled.footer`
-  background-color: #333;
-  color: white;
-  text-align: center;
-  padding: 1rem;
+const LoginConfirmationOverlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background-color: rgba(248, 249, 250, 0.95);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `;
 
-const FooterText = styled.p`
-  font-size: 1rem;
-  color: #aaa;
+const ConfirmationBox = styled(motion.div)`
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
 `;
 
-// Animations for Framer Motion
+const WhatsappIcon = styled.div`
+  font-size: 4rem;
+  color: #25D366;
+  margin: 1rem 0;
+`;
+
 const headerVariants = {
-  hidden: { opacity: 0, y: -50 },
-  visible: { opacity: 1, y: 0, transition: { duration: 1 } },
+  hidden: { opacity: 0, y: -20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
 };
 
-const ctaButtonVariants = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: { opacity: 1, scale: 1, transition: { delay: 0.5, duration: 0.6 } },
+const titleVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.6 } },
 };
 
 const Home = () => {
   const [userChoice, setUserChoice] = useState(null);
   const [showStartButton, setShowStartButton] = useState(true);
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   const handleChoice = (choice) => {
     setUserChoice(choice);
-    if (choice === "new") {
-      navigate('/register');
-    } else {
-      navigate('/login');
-    }
+    navigate(choice === "new" ? '/register' : '/login');
   };
 
-  const handleStartNow = () => {
-    setShowStartButton(false);
-    setUserChoice(null);
-  };
+  const handleStartNow = () => setShowStartButton(false);
 
   return (
     <Container>
-      <Header variants={headerVariants} initial="hidden" animate="visible">
-        <Logo src={logo} alt="Enova Pulse Logo" />
-        <Title>Bienvenido a Opina Cash</Title>
+      <AnimatePresence>
+        {user && (
+          <LoginConfirmationOverlay
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ConfirmationBox
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <WhatsappIcon>
+                <i className="fab fa-whatsapp"></i>
+              </WhatsappIcon>
+              <h3>¡Cuenta reconocida con éxito!</h3>
+              <p>Tu sesión ha sido verificada correctamente.</p>
+              <p>Pronto recibirás encuestas por WhatsApp.</p>
+            </ConfirmationBox>
+          </LoginConfirmationOverlay>
+        )}
+      </AnimatePresence>
+
+      <HeaderContainer variants={headerVariants} initial="hidden" animate="visible">
+        <Logo src={logo} alt="Opina Cash Logo" />
+        <Title variants={titleVariants} initial="hidden" animate="visible">
+          Bienvenido a Opina Cash
+        </Title>
+        <TitleDivider initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.4 }} />
         <Subtitle>Donde tu opinión paga</Subtitle>
         {showStartButton && (
-          <CTAButton variants={ctaButtonVariants} whileHover={{ scale: 1.05 }} onClick={handleStartNow}>
+          <Button onClick={handleStartNow} whileHover={{ scale: 1.03 }}>
             Empieza a ganar ahora
-          </CTAButton>
+          </Button>
         )}
-      </Header>
+      </HeaderContainer>
 
       {userChoice === null && !showStartButton && (
         <SurveyInfoSection>
-          <SurveyInfoText>¿Eres nuevo o ya tienes cuenta?</SurveyInfoText>
-          <CTAButton onClick={() => handleChoice('new')}>Soy nuevo</CTAButton>
-          <CTAButton onClick={() => handleChoice('existing')}>Ya tengo cuenta</CTAButton>
+          <p>¿Eres nuevo o ya tienes cuenta?</p>
+          <Button onClick={() => handleChoice('new')}>Soy nuevo</Button>
+          <Button onClick={() => handleChoice('existing')}>Ya tengo cuenta</Button>
         </SurveyInfoSection>
       )}
 
       <SurveyInfoSection>
-        <SurveyInfoText>
-          Responde encuestas, desde tu celular, en menos de 5 minutos y gana 7 pesos por cada una. ¡Recibe tu pago al instante vía Nequi!
-        </SurveyInfoText>
+        <p>Responde encuestas desde tu celular en menos de 5 minutos y gana 7 pesos por cada una.</p>
       </SurveyInfoSection>
 
-      <Footer>
-        <FooterText>&copy; 2025 Enova Pulse - Todos los derechos reservados</FooterText>
-      </Footer>
+      <Footer />
     </Container>
   );
 };

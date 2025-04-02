@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ResultsList from './ResultsList';
 import ResultsDetails from './ResultsDetails';
 import Filters from '../components/Filters';
 import { SkeletonLoader } from '../components/SkeletonCard';
 import styled from 'styled-components';
+import AuthContext from '../context/AuthContext';
 
 const Container = styled.div`
   padding: 2rem;
@@ -13,18 +14,37 @@ const Container = styled.div`
 `;
 
 const Results = () => {
-  const { surveyId } = useParams(); // Pega o ID da enquete da URL
+  const { surveyId } = useParams();
   const [filter, setFilter] = useState('all');
   const [surveys, setSurveys] = useState([]);
   const [responses, setResponses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
+  // Verifica se o usuário é admin
+  useEffect(() => {
+    if (user && user.role !== 'Admin') {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   // Busca as enquetes ativas
   useEffect(() => {
     const fetchSurveys = async () => {
       try {
-        const response = await fetch('https://enova-backend.onrender.com/api/surveys/active');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token de autenticação não encontrado.');
+        }
+
+        const response = await fetch('https://enova-backend.onrender.com/api/surveys/active', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
         if (!response.ok) {
           throw new Error(`Erro na requisição: ${response.statusText}`);
         }
@@ -37,22 +57,24 @@ const Results = () => {
       }
     };
 
-    fetchSurveys();
-  }, []);
+    if (user?.role === 'Admin') {
+      fetchSurveys();
+    }
+  }, [user]);
 
   // Busca as respostas da enquete específica
   useEffect(() => {
-    if (surveyId) {
+    if (surveyId && user?.role === 'Admin') {
       const fetchResponses = async () => {
         try {
-          const token = localStorage.getItem('token'); // Recupera o token do localStorage
+          const token = localStorage.getItem('token');
           if (!token) {
             throw new Error('Token de autenticação não encontrado.');
           }
 
           const response = await fetch(`https://enova-backend.onrender.com/api/results/survey/${surveyId}`, {
             headers: {
-              'Authorization': `Bearer ${token}`, // Adiciona o token no header
+              'Authorization': `Bearer ${token}`,
             },
           });
 
@@ -69,13 +91,13 @@ const Results = () => {
 
       fetchResponses();
     }
-  }, [surveyId]);
+  }, [surveyId, user]);
 
   // Filtra e ordena as enquetes
   const filteredSurveys = surveys.filter((survey) => {
     if (filter === 'active') return survey.status === 'active';
     if (filter === 'expired') return survey.status === 'expired';
-    return true; // Todas
+    return true;
   });
 
   const sortedSurveys = filteredSurveys.sort((a, b) => {
@@ -87,12 +109,12 @@ const Results = () => {
 
   return (
     <Container>
-      {!surveyId ? ( // Se não houver surveyId, mostra a lista de enquetes
+      {!surveyId ? (
         <>
           <Filters onFilterChange={setFilter} />
           <ResultsList surveys={sortedSurveys} />
         </>
-      ) : ( // Se houver surveyId, mostra os detalhes da enquete
+      ) : (
         <ResultsDetails
           responses={responses}
           survey={surveys.find((s) => s.id === parseInt(surveyId))}

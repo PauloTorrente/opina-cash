@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
@@ -29,21 +29,27 @@ const ErrorMessage = styled.p`
 `;
 
 const Login = () => {
+  const location = useLocation();
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
 
+  // Get the redirect location or default to home
+  const from = location.state?.from?.pathname || '/';
+  const searchParams = location.state?.from?.search || '';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Limpa o erro anterior
+    setError('');
 
     try {
       const data = await loginUser(credentials);
-      login(data); // Atualiza o estado do usuário no AuthContext
-      navigate('/'); // Redireciona para a página inicial após o login
+      await login(data); // Update auth state
+      
+      // Redirect to original location or home
+      navigate(`${from}${searchParams}`, { replace: true });
     } catch (error) {
-      // Verifica o tipo de erro e exibe a mensagem correspondente
       if (error.message === 'The email or password may be incorrect.') {
         setError('El correo electrónico o la contraseña pueden ser incorrectos.');
       } else if (error.message === 'Please confirm your email before logging in.') {
@@ -64,6 +70,7 @@ const Login = () => {
           placeholder="Correo electrónico"
           value={credentials.email}
           onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+          required
         />
         <InputField
           type="password"
@@ -71,6 +78,7 @@ const Login = () => {
           placeholder="Contraseña"
           value={credentials.password}
           onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+          required
         />
         <Button type="submit">Entrar</Button>
       </form>

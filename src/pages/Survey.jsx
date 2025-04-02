@@ -1,26 +1,47 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
 import { Container, Title, QuestionContainer, QuestionText, Select } from '../components/Survey.styles';
+import AuthContext from '../context/AuthContext';
 
 const Survey = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const accessToken = queryParams.get('accessToken');
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   const [survey, setSurvey] = useState(null);
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login', {
+        state: { 
+          from: location 
+        },
+        replace: true
+      });
+    }
+  }, [user, navigate, location]);
+
   useEffect(() => {
     const fetchSurvey = async () => {
       try {
-        // Buscar a pesquisa diretamente pelo endpoint que já filtra pelo token
+        if (!user) return; 
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token de autenticação não encontrado');
+        }
+
         const response = await fetch(`https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${token}`,
           },
         });
         
@@ -34,20 +55,11 @@ const Survey = () => {
           throw new Error('Encuesta no encontrada');
         }
 
-        // Debug: Mostrar a estrutura completa da survey recebida
-        console.log('Survey data received:', surveyData);
-
-        // Parsear las preguntas si es necesario
         let questions = typeof surveyData.questions === 'string' 
           ? JSON.parse(surveyData.questions) 
           : surveyData.questions;
 
-        // Debug: Mostrar as perguntas antes da normalização
-        console.log('Questions before normalization:', questions);
-
-        // Normalizar a estrutura das perguntas
         questions = questions.map((q, index) => {
-          // Se a pergunta for apenas texto
           if (typeof q === 'string') {
             return {
               questionId: index + 1,
@@ -56,19 +68,15 @@ const Survey = () => {
             };
           }
           
-          // Se já for objeto, garantir a estrutura correta
           const questionId = q.id || q.questionId || index + 1;
           return {
             questionId: questionId,
-            id: questionId, // Manter ambos para compatibilidade
+            id: questionId,
             question: q.question || q.text,
             type: q.type || 'text',
             options: q.options || []
           };
         });
-
-        // Debug: Mostrar as perguntas após normalização
-        console.log('Questions after normalization:', questions);
 
         setSurvey({
           ...surveyData,
@@ -82,10 +90,10 @@ const Survey = () => {
       }
     };
 
-    if (accessToken) {
+    if (accessToken && user) {
       fetchSurvey();
     }
-  }, [accessToken]);
+  }, [accessToken, user]);
 
   const handleResponseChange = (questionId, answer) => {
     setResponses(prev => ({
@@ -97,27 +105,26 @@ const Survey = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!survey?.questions) return;
+    if (!survey?.questions || !user) return;
 
     try {
-      // Preparar respostas no formato exato que o backend espera
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token de autenticação não encontrado');
+      }
+
       const responseData = survey.questions.map(question => {
         return {
-          questionId: Number(question.questionId), // Garantir que é número
+          questionId: Number(question.questionId),
           answer: responses[question.questionId] || ''
         };
       }).filter(item => item.answer !== '');
-
-      console.log('Submitting responses:', {
-        accessToken,
-        responses: responseData
-      });
 
       const response = await fetch(`https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(responseData),
       });
@@ -134,6 +141,8 @@ const Survey = () => {
       alert(`Error: ${error.message}`);
     }
   };
+
+  if (!user) return null; 
 
   if (loading) return <Container>Cargando...</Container>;
   if (error) return <Container>Error: {error}</Container>;

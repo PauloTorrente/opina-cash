@@ -1,50 +1,50 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode'; // Importação corrigida
+import { jwtDecode } from 'jwt-decode'; // Corrected import
 import axios from 'axios';
 
-const API_BASE_URL = 'https://enova-backend.onrender.com/api'; // URL base do backend
+const API_BASE_URL = 'https://enova-backend.onrender.com/api'; // Base URL for the backend
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null); // State to store the user info
+  const [loading, setLoading] = useState(true); // State to track loading status
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedRefreshToken = localStorage.getItem('refreshToken');
+    const storedToken = localStorage.getItem('token'); // Get token from localStorage
+    const storedRefreshToken = localStorage.getItem('refreshToken'); // Get refresh token from localStorage
 
     if (storedToken && storedRefreshToken) {
-      // Decodifica o token para obter as informações do usuário
+      // Decode the token to get user information
       const decodedToken = jwtDecode(storedToken);
-      setUser({ token: storedToken, refreshToken: storedRefreshToken, role: decodedToken.role });
+      setUser({ token: storedToken, refreshToken: storedRefreshToken, role: decodedToken.role }); // Set user state with token, refreshToken, and role
     }
-    setLoading(false);
+    setLoading(false); // Set loading to false once token check is done
   }, []);
 
   const login = async (data) => {
-    // Decodifica o token para obter as informações do usuário
+    // Decode the token to get user information
     const decodedToken = jwtDecode(data.token);
 
-    // Armazena o token e refreshToken no localStorage
+    // Store token and refreshToken in localStorage
     localStorage.setItem('token', data.token);
     localStorage.setItem('refreshToken', data.refreshToken);
 
-    // Atualiza o estado do usuário com os tokens e a role
+    // Update user state with token, refreshToken, and role
     setUser({ token: data.token, refreshToken: data.refreshToken, role: decodedToken.role });
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    setUser(null); // Clear user state on logout
+    localStorage.removeItem('token'); // Remove token from localStorage
+    localStorage.removeItem('refreshToken'); // Remove refresh token from localStorage
   };
 
-  // Função para renovar o token
+  // Function to refresh the token
   const refreshToken = async () => {
     const storedRefreshToken = localStorage.getItem('refreshToken');
     if (!storedRefreshToken) {
-      throw new Error('No refresh token found');
+      throw new Error('No refresh token found'); // Throw error if no refresh token is found
     }
 
     try {
@@ -53,24 +53,24 @@ export const AuthProvider = ({ children }) => {
       });
 
       const newToken = response.data.token;
-      localStorage.setItem('token', newToken); // Armazena o novo token
-      return newToken;
+      localStorage.setItem('token', newToken); // Store new token in localStorage
+      return newToken; // Return new token
     } catch (error) {
-      logout(); // Faz logout se a renovação falhar
-      throw error;
+      logout(); // Log out if refresh token request fails
+      throw error; // Throw error after logout
     }
   };
 
-  // Função para fazer requisições autenticadas
+  // Function to make authenticated requests
   const authFetch = async (url, options = {}) => {
     let token = localStorage.getItem('token');
     if (!token) {
-      throw new Error('No token found');
+      throw new Error('No token found'); // Throw error if no token is found
     }
 
     const headers = {
       ...options.headers,
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`, // Add token to the request headers
     };
 
     try {
@@ -81,26 +81,26 @@ export const AuthProvider = ({ children }) => {
       });
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        // Token expirado, tenta renovar
-        const newToken = await refreshToken();
-        headers.Authorization = `Bearer ${newToken}`; // Atualiza o cabeçalho com o novo token
+        // If token is expired, try to refresh it
+        const newToken = await refreshToken(); // Get new token
+        headers.Authorization = `Bearer ${newToken}`; // Update the header with the new token
 
-        // Repete a requisição com o novo token
+        // Retry the request with the new token
         return axios({
           ...options,
           url: `${API_BASE_URL}${url}`,
           headers,
         });
       }
-      throw error; // Lança o erro se não for um erro 401
+      throw error; // Throw error if not a 401 error
     }
   };
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading, authFetch }}>
-      {children}
+      {children} {/* Render children components with the provided context values */}
     </AuthContext.Provider>
   );
 };
 
-export default AuthContext;
+export default AuthContext; // Export the AuthContext for use in other parts of the app

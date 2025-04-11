@@ -46,7 +46,7 @@ const LoginConfirmationOverlay = styled(motion.div)`
   width: 100%;
   height: 100%;
   background-color: rgba(248, 249, 250, 0.95);
-  z-index: 1000;
+  z-index: 998; 
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
@@ -26,6 +26,22 @@ const ErrorMessage = styled.p`
   color: #ff4d4d;
   text-align: center;
   margin-top: 1rem;
+`;
+
+const RegisterPrompt = styled.div`
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #666;
+  
+  a {
+    color: #6c63ff;
+    text-decoration: none;
+    font-weight: 500;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 const Login = () => {
@@ -83,6 +99,10 @@ const Login = () => {
         <Button type="submit">Entrar</Button>
       </form>
       {error && <ErrorMessage>{error}</ErrorMessage>}
+      
+      <RegisterPrompt>
+        ¿No tienes una cuenta? <Link to="/register">Regístrate aquí</Link>
+      </RegisterPrompt>
     </FormContainer>
   );
 };

@@ -1,121 +1,203 @@
 import React from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion'; // Importing Framer Motion for animations
-import OptionInput from './OptionInput'; // Importing OptionInput component for multiple choice options
+import { motion } from 'framer-motion';
 
-// Styled component for the select dropdown to choose question type
-const Select = styled.select`
+// Correção: Certifique-se que todos os componentes estilizados estão definidos
+const Container = styled.div`
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  position: relative;
+`;
+
+const QuestionTypeSelect = styled.select`
   width: 100%;
-  padding: 1.2rem;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
   border: 2px solid #ddd;
   border-radius: 6px;
-  font-size: 1.1rem;
+  font-size: 1rem;
 `;
 
-// Styled button for adding new options, with animation from framer-motion
-const AddOptionButton = styled(motion.button)`
-  padding: 0.75rem 1.5rem;
-  background-color: #007bff; // Blue button color
-  border: none;
-  color: #fff; // White text color
-  font-size: 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-top: 1.5rem;
-  &:hover {
-    background-color: #0056b3; // Darker blue on hover
-  }
-`;
-
-// Styled input field for entering the question text
 const QuestionTextInput = styled.input`
   width: 100%;
-  padding: 1.2rem;
-  margin-bottom: 1.5rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
   border: 2px solid #ddd;
   border-radius: 6px;
-  font-size: 1.2rem;
-  &:focus {
-    border-color: #28a745; // Green border on focus
-    outline: none;
-    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5); // Green glow on focus
-  }
+  font-size: 1rem;
 `;
 
-// The QuestionInput component to handle both question and options inputs
+const OptionInputContainer = styled.div`
+  position: relative;
+  margin-bottom: 0.5rem;
+`;
+
+const OptionInputField = styled.input`
+  width: 100%;
+  padding: 1rem;
+  padding-right: 2.5rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+`;
+
+const RemoveOptionButton = styled.button`
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
+const ActionButton = styled(motion.button)`
+  padding: 0.75rem 1.5rem;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  flex: 1;
+`;
+
+const AddOptionButton = styled(ActionButton)`
+  background-color: #007bff;
+`;
+
+const RemoveOptionButtonLarge = styled(ActionButton)`
+  background-color: #dc3545;
+`;
+
 const QuestionInput = ({ index, question, onQuestionChange }) => {
-  // Handle change in question type (multiple choice or text)
+  console.log(`QuestionInput renderizado ${index}`, question);
+
   const handleTypeChange = (e) => {
     const newType = e.target.value;
-    onQuestionChange(index, { type: newType, question: question.question, options: question.options });
+    const newOptions = newType === 'multiple_choice' ? ['', ''] : [];
+    onQuestionChange(index, {
+      ...question,
+      type: newType,
+      options: newOptions
+    });
   };
 
-  // Handle text change for the question itself
-  const handleQuestionTextChange = (e) => {
-    const updatedQuestion = { question: e.target.value };
-    onQuestionChange(index, updatedQuestion);
+  const handleQuestionChange = (e) => {
+    onQuestionChange(index, {
+      ...question,
+      question: e.target.value
+    });
   };
 
-  // Handle change in options for multiple choice question
-  const handleOptionChange = (optionIndex, updatedOption) => {
-    const updatedOptions = [...question.options];
-    updatedOptions[optionIndex] = updatedOption;
-    onQuestionChange(index, { type: question.type, question: question.question, options: updatedOptions });
+  const handleOptionChange = (optionIndex, e) => {
+    const newOptions = [...question.options];
+    newOptions[optionIndex] = e.target.value;
+    onQuestionChange(index, {
+      ...question,
+      options: newOptions
+    });
   };
 
-  // Add a new empty option to the multiple choice question
-  const handleAddOption = () => {
-    const updatedOptions = [...question.options, '']; // Adding a new empty option
-    onQuestionChange(index, { type: question.type, question: question.question, options: updatedOptions });
+  const addOption = () => {
+    if (question.options.length >= 6) {
+      alert('Máximo 6 opciones permitidas');
+      return;
+    }
+    onQuestionChange(index, {
+      ...question,
+      options: [...question.options, '']
+    });
+  };
+
+  const removeOption = (optionIndex) => {
+    if (question.options.length <= 2) {
+      alert('Cada pregunta debe tener al menos dos opciones');
+      return;
+    }
+    const newOptions = question.options.filter((_, i) => i !== optionIndex);
+    onQuestionChange(index, {
+      ...question,
+      options: newOptions
+    });
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }} // Start with zero opacity for fade-in animation
-      animate={{ opacity: 1 }} // Animate to full opacity
-      exit={{ opacity: 0 }} // Fade-out animation
-      transition={{ duration: 0.3 }} // Duration for fade-in/out
-    >
-      {/* Dropdown for selecting question type */}
-      <Select value={question.type} onChange={handleTypeChange}>
-        <option value="multiple_choice">Opción múltiple 🎮</option>
-        <option value="text">Texto 💬</option>
-      </Select>
+    <Container>
+      <QuestionTypeSelect
+        value={question.type}
+        onChange={handleTypeChange}
+      >
+        <option value="multiple_choice">Opción múltiple</option>
+        <option value="text">Respuesta de texto</option>
+      </QuestionTypeSelect>
 
-      {/* Input for the question text */}
       <QuestionTextInput
         type="text"
         placeholder={`Pregunta ${index + 1}`}
-        value={question.question || ''} // Display question text if it exists
-        onChange={handleQuestionTextChange} // Update the question text
+        value={question.question}
+        onChange={handleQuestionChange}
         required
       />
 
-      {/* Render options only if question type is multiple_choice */}
       {question.type === 'multiple_choice' && (
-        <div>
-          {question.options.map((option, oIndex) => (
-            <OptionInput
-              key={oIndex} // Unique key for each option
-              questionIndex={index} // Pass the index to identify the question
-              optionIndex={oIndex} // Pass option index to identify the option
-              option={option} // Pass the current option text
-              onOptionChange={handleOptionChange} // Function to update option text
-            />
+        <>
+          {question.options.map((option, optionIndex) => (
+            <OptionInputContainer key={optionIndex}>
+              <OptionInputField
+                type="text"
+                placeholder={`Opción ${optionIndex + 1}`}
+                value={option}
+                onChange={(e) => handleOptionChange(optionIndex, e)}
+                required
+              />
+              {question.options.length > 2 && (
+                <RemoveOptionButton
+                  type="button"
+                  onClick={() => removeOption(optionIndex)}
+                  title="Eliminar opción"
+                >
+                  ×
+                </RemoveOptionButton>
+              )}
+            </OptionInputContainer>
           ))}
-          {/* Button to add new option */}
-          <AddOptionButton
-            type="button"
-            onClick={handleAddOption} // Add new empty option on click
-            whileHover={{ scale: 1.1 }} // Slightly scale the button on hover
-            whileTap={{ scale: 0.9 }} // Slightly shrink the button on tap
-          >
-            Añadir Opción ➕
-          </AddOptionButton>
-        </div>
+
+          <ButtonGroup>
+            <AddOptionButton
+              type="button"
+              onClick={addOption}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Añadir Opción
+            </AddOptionButton>
+            
+            {question.options.length > 2 && (
+              <RemoveOptionButtonLarge
+                type="button"
+                onClick={() => removeOption(question.options.length - 1)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Eliminar Última
+              </RemoveOptionButtonLarge>
+            )}
+          </ButtonGroup>
+        </>
       )}
-    </motion.div>
+    </Container>
   );
 };
 

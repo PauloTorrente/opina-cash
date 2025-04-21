@@ -1,48 +1,113 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
-// Container for the entire survey
+// Animations
+const fadeIn = keyframes`
+  from { opacity: 0; }
+  to { opacity: 1; }
+`;
+
+// Containers
 export const Container = styled.div`
-  padding: 2rem; // Add padding around the container
-  max-width: 600px; // Set max width of the survey
-  margin: 0 auto; // Center the survey horizontally
-  text-align: center; // Center the text inside the container
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
 `;
 
-// Title of the survey
-export const Title = styled.h1`
-  color: #6c63ff; // Purple color for the title
-  margin-bottom: 1.5rem; // Add space below the title
-`;
-
-// Container for each survey question
 export const QuestionContainer = styled.div`
-  margin-bottom: 1.5rem; // Space below each question container
+  margin-bottom: 1.5rem;
 `;
 
-// Style for the question text
+export const MediaContainer = styled.div`
+  margin: 1rem 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+`;
+
+// Typography
+export const Title = styled.h1`
+  color: #6c63ff;
+  margin-bottom: 1.5rem;
+`;
+
 export const QuestionText = styled.h3`
-  color: #333; // Dark gray color for the question text
-  margin-bottom: 1rem; // Add space below the question text
+  color: #333;
+  margin-bottom: 1rem;
 `;
 
-// Style for the select dropdown input
+// Form elements
 export const Select = styled.select`
-  width: 100%; // Make the select input take up the full width
-  padding: 0.8rem; // Add padding inside the select input
-  margin: 1rem 0; // Add space above and below the select input
-  border: 1px solid #6c63ff; // Purple border color
-  border-radius: 8px; // Rounded corners for the select input
-  font-size: 1rem; // Set font size for the text inside the select input
+  width: 100%;
+  padding: 0.8rem;
+  margin: 1rem 0;
+  border: 1px solid #6c63ff;
+  border-radius: 8px;
+  font-size: 1rem;
 `;
 
-// Container for radio button group
-export const RadioGroup = styled.div`
-  text-align: left; // Align radio buttons to the left
-  margin: 1rem 0; // Add space above and below the radio group
+// Media components
+export const ResponsiveImage = styled.img`
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
-// Style for each radio button label
-export const RadioLabel = styled.label`
-  display: block; // Make the label display as a block element
-  margin: 0.5rem 0; // Add space above and below each radio label
+export const ResponsiveVideo = styled.div`
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  overflow: hidden;
+  border-radius: 8px;
+  background: #000;
+  
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+`;
+
+// Modal components
+export const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: ${fadeIn} 0.3s ease-in-out;
+`;
+
+export const ModalContent = styled.div`
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+`;
+
+export const ModalTitle = styled.h2`
+  color: #6c63ff;
+  margin-bottom: 1rem;
+`;
+
+export const ModalText = styled.p`
+  margin-bottom: 2rem;
+  color: #555;
 `;

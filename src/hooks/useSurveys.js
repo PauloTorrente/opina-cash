@@ -1,35 +1,84 @@
-import { useState, useEffect, useContext } from 'react';
-import AuthContext from '../context/AuthContext'; // Importing the AuthContext to access authFetch for authenticated requests
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import AuthContext from '../context/AuthContext';
 
-// Custom hook to fetch active surveys
-export const useSurveys = () => {
-  const { authFetch } = useContext(AuthContext); // Accessing the authFetch function from AuthContext for making authenticated API requests
-  const [surveys, setSurveys] = useState([]); // State variable to store the surveys fetched from the API
-  const [loading, setLoading] = useState(true); // State variable to indicate loading status while fetching data
-  const [error, setError] = useState(null); // State variable to store any error that may occur during the fetch
+export const useSurvey = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const queryParams = new URLSearchParams(location.search);
+  const accessToken = queryParams.get('accessToken');
+
+  const [survey, setSurvey] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const processImgurUrl = (url) => {
+    if (!url) return null;
+    if (url.includes('i.imgur.com')) return url;
+    const imageId = url.split('/').pop().split('.')[0];
+    return `https://i.imgur.com/${imageId}.jpg`;
+  };
+
+  const processYoutubeUrl = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    const videoId = (match && match[2].length === 11) ? match[2] : null;
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+  };
 
   useEffect(() => {
-    // Function to fetch active surveys from the API
-    const fetchSurveys = async () => {
+    const fetchSurvey = async () => {
       try {
-        const response = await authFetch('/surveys/active'); // Make the authenticated request to fetch active surveys
+        if (!user) return;
 
-        // Check if the response contains an array of surveys
-        if (response.data && response.data.surveys && Array.isArray(response.data.surveys)) {
-          setSurveys(response.data.surveys); // Store the surveys in the state
-        } else {
-          throw new Error('API response does not contain an array of surveys'); // Throw an error if the response is not valid
-        }
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('Token de autenticação não encontrado');
 
-        setLoading(false); // Set loading to false after data is successfully fetched
-      } catch (err) {
-        setError(err.message); // Store the error message if an error occurs during the fetch
-        setLoading(false); // Set loading to false even if an error occurs
+        const response = await fetch(`https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+
+        if (!response.ok) throw new Error('Error al obtener la encuesta');
+        
+        const surveyData = await response.json();
+        if (!surveyData) throw new Error('Encuesta no encontrada');
+
+        let questions = typeof surveyData.questions === 'string' 
+          ? JSON.parse(surveyData.questions) 
+          : surveyData.questions;
+
+        questions = questions.map((q, index) => {
+          if (typeof q === 'string') return {
+            questionId: index + 1,
+            question: q,
+            type: 'text'
+          };
+          
+          const questionId = q.id || q.questionId || index + 1;
+          return {
+            questionId,
+            id: questionId,
+            question: q.question || q.text,
+            type: q.type || 'text',
+            options: q.options || [],
+            imagem: q.imagem ? processImgurUrl(q.imagem) : null,
+            video: q.video ? processYoutubeUrl(q.video) : null
+          };
+        });
+
+        setSurvey({ ...surveyData, questions });
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchSurveys(); // Call the function to fetch surveys when the component is mounted
-  }, [authFetch]); // Run the effect when authFetch changes
+    if (accessToken && user) fetchSurvey();
+  }, [accessToken, user]);
 
-  return { surveys, loading, error }; // Return the state variables so they can be used by the component
+  return { survey, loading, error };
 };

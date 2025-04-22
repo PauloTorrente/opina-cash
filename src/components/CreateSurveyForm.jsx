@@ -67,7 +67,27 @@ const CreateSurveyForm = ({ onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(surveyData);
+    const formattedData = {
+      ...surveyData,
+      questions: surveyData.questions.map(q => {
+        const formattedQuestion = {
+          question: q.question,
+          questionId: surveyData.questions.indexOf(q) + 1,
+          type: q.type
+        };
+        if (q.type === 'multiple_choice') {
+          formattedQuestion.options = q.options;
+        }
+        if (q.mediaType === 'image') {
+          formattedQuestion.imagem = q.mediaUrl;
+        }
+        if (q.mediaType === 'video') {
+          formattedQuestion.video = q.mediaUrl;
+        }
+        return formattedQuestion;
+      })
+    };
+    onSubmit(formattedData);
   };
 
   const handleKeyDown = (e) => {

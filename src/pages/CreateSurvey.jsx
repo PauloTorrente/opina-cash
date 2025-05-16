@@ -21,7 +21,6 @@ const CreateSurvey = () => {
         method: 'POST',
         data: surveyData,
       });
-      console.log('Encuesta creada:', response.data);
       setCreatedSurvey(response.data); // Armazena os dados da enquete criada (incluindo accessToken)
     } catch (error) {
       console.error('Error creando encuesta:', error);

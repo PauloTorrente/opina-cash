@@ -16,7 +16,6 @@ export const handleRegisterSubmit = async (formData, setErrors, setShowSuccessMo
       lastName: formData.lastName,
       role: "user", // Default role is user
     });
-    console.log('Successful registration:', response.data);
     setShowSuccessModal(true); // Show success modal on successful registration
   } catch (error) {
     console.error('Error during registration:', error.response ? error.response.data : error); // Log error if any

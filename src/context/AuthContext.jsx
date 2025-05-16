@@ -11,33 +11,62 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedRefreshToken = localStorage.getItem('refreshToken');
-
-    if (storedToken && storedRefreshToken) {
-      const decodedToken = jwtDecode(storedToken);
-      setUser({ 
-        token: storedToken, 
-        refreshToken: storedRefreshToken, 
-        role: decodedToken.role 
-      });
-    }
-    setLoading(false);
+    const initializeUser = async () => {
+      const storedToken = localStorage.getItem('token');
+      const storedRefreshToken = localStorage.getItem('refreshToken');
+  
+      if (storedToken && storedRefreshToken) {
+        try {
+          // Busca dados atualizados do usuário
+          const userResponse = await axios.get(`${API_BASE_URL}/users/me`, {
+            headers: {
+              Authorization: `Bearer ${storedToken}`
+            }
+          });
+  
+          const decodedToken = jwtDecode(storedToken);
+          
+          setUser({
+            ...userResponse.data,
+            token: storedToken,
+            refreshToken: storedRefreshToken,
+            role: decodedToken.role,
+          });
+  
+        } catch (error) {
+          console.error('Error initializing user:', error);
+          logout();
+        }
+      }
+      setLoading(false);
+    };
+  
+    initializeUser();
   }, []);
+  
 
   const login = async (data, redirectPath = '/') => {
     try {
       const decodedToken = jwtDecode(data.token);
-
+      
+      // Busca os dados completos do usuário após o login
+      const userResponse = await axios.get(`${API_BASE_URL}/users/me`, {
+        headers: {
+          Authorization: `Bearer ${data.token}`
+        }
+      });
+  
       localStorage.setItem('token', data.token);
       localStorage.setItem('refreshToken', data.refreshToken);
-
-      setUser({ 
-        token: data.token, 
-        refreshToken: data.refreshToken, 
-        role: decodedToken.role 
+  
+      // Armazena TODOS os dados do usuário
+      setUser({
+        ...userResponse.data, // Inclui phone_number e outros campos
+        token: data.token,
+        refreshToken: data.refreshToken,
+        role: decodedToken.role,
       });
-
+  
       return redirectPath;
     } catch (error) {
       console.error('Login error:', error);

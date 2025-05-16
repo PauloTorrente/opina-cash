@@ -64,10 +64,6 @@ const Register = () => {
     };
 
     setFieldErrors(newFieldErrors);
-
-    console.log('Field Errors:', newFieldErrors); // Debug
-    console.log('Accepted Terms:', acceptedTerms); // Debug
-
     // Verifica se há erros nos campos ou se os termos não foram aceitos
     const hasErrors = Object.values(newFieldErrors).some(error => error !== '' && error !== null);
     if (hasErrors || !acceptedTerms) {

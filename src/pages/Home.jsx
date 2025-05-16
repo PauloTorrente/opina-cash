@@ -6,6 +6,9 @@ import { HeaderContainer, Title, TitleDivider, Subtitle } from '../components/He
 import Button from '../components/Button';
 import Footer from '../components/Footer';
 import AuthContext from '../context/AuthContext';
+import InfoReminder from '../components/InfoReminder';
+import LoginSuccessModal from '../components/LoginSuccessModal';
+import { useIncompleteProfile } from '../hooks/useIncompleteProfile';
 import logo from '../assets/logo.png';
 import '@fontsource/poppins/700.css';
 
@@ -39,36 +42,6 @@ const SurveyInfoSection = styled.section`
   text-align: center;
 `;
 
-const LoginConfirmationOverlay = styled(motion.div)`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(248, 249, 250, 0.95);
-  z-index: 998; 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-`;
-
-const ConfirmationBox = styled(motion.div)`
-  background-color: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  max-width: 500px;
-  width: 90%;
-  text-align: center;
-`;
-
-const WhatsappIcon = styled.div`
-  font-size: 4rem;
-  color: #25D366;
-  margin: 1rem 0;
-`;
-
 const headerVariants = {
   hidden: { opacity: 0, y: -20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
@@ -84,38 +57,22 @@ const Home = () => {
   const [showStartButton, setShowStartButton] = useState(true);
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-
+  const profileStatus = useIncompleteProfile();
   const handleChoice = (choice) => {
     setUserChoice(choice);
-    navigate(choice === "new" ? '/register' : '/login');
+    navigate(choice === 'new' ? '/register' : '/login');
   };
 
   const handleStartNow = () => setShowStartButton(false);
 
   return (
     <Container>
+      {/* Mostra InfoReminder somente se o número de telefone ainda não foi informado */}
+      {user && profileStatus.needsBasicInfo && !profileStatus.hasphone_number && <InfoReminder />}
+
+      {/* Modal de confirmação quando o número foi preenchido */}
       <AnimatePresence>
-        {user && (
-          <LoginConfirmationOverlay
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <ConfirmationBox
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <WhatsappIcon>
-                <i className="fab fa-whatsapp"></i>
-              </WhatsappIcon>
-              <h3>¡Cuenta reconocida con éxito!</h3>
-              <p>Tu sesión ha sido verificada correctamente.</p>
-              <p>Pronto recibirás encuestas por WhatsApp.</p>
-            </ConfirmationBox>
-          </LoginConfirmationOverlay>
-        )}
+        {user && profileStatus.hasphone_number && <LoginSuccessModal />}
       </AnimatePresence>
 
       <HeaderContainer variants={headerVariants} initial="hidden" animate="visible">

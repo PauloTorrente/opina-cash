@@ -82,8 +82,6 @@ const RemoveOptionButtonLarge = styled(ActionButton)`
 `;
 
 const QuestionInput = ({ index, question, onQuestionChange }) => {
-  console.log(`QuestionInput renderizado ${index}`, question);
-
   const handleTypeChange = (e) => {
     const newType = e.target.value;
     const newOptions = newType === 'multiple_choice' ? ['', ''] : [];

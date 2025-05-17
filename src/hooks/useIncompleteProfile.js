@@ -5,25 +5,14 @@ export function useIncompleteProfile() {
   const { user } = useContext(AuthContext);
 
   return useMemo(() => {
-    if (!user) return false;
+    if (!user) return { needsBasicInfo: false, missingFieldsCount: 0 };
     
-    const required = [
-      'firstName',
-      'lastName',
-      'gender',
-      'age',
-      'city',
-      'residentialArea',
-      'purchaseResponsibility',
-      'educationLevel'
-    ];
-    
-    const hasphone_number = !!user.phone_number;
-    const hasBasicInfo = required.some(key => !user[key]);
+    // Agora só validamos o phone_number
+    const hasPhoneNumber = !!user.phone_number?.trim();
     
     return {
-      needsBasicInfo: hasBasicInfo,
-      hasphone_number
+      needsBasicInfo: !hasPhoneNumber,
+      missingFieldsCount: hasPhoneNumber ? 0 : 1
     };
   }, [user]);
 }

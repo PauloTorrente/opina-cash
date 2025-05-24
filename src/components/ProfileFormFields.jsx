@@ -11,7 +11,7 @@ export default function ProfileFormFields({ fields, form, onChange, onPhoneChang
           value={form[field.name]}
           onChange={onChange}
           onPhoneChange={onPhoneChange}
-          error={errors ? errors[field.name] : undefined}  // passa o erro pro ProfileField
+          error={errors ? errors[field.name] : undefined} 
         />
       ))}
     </>

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   
       if (storedToken && storedRefreshToken) {
         try {
-          // Busca dados atualizados do usuário
+          // Fetch updated user data
           const userResponse = await axios.get(`${API_BASE_URL}/users/me`, {
             headers: {
               Authorization: `Bearer ${storedToken}`
@@ -44,24 +44,20 @@ export const AuthProvider = ({ children }) => {
     initializeUser();
   }, []);
   
-
   const login = async (data, redirectPath = '/') => {
     try {
       const decodedToken = jwtDecode(data.token);
-      
-      // Busca os dados completos do usuário após o login
+      // Fetch complete user data after login
       const userResponse = await axios.get(`${API_BASE_URL}/users/me`, {
         headers: {
           Authorization: `Bearer ${data.token}`
         }
       });
-  
       localStorage.setItem('token', data.token);
       localStorage.setItem('refreshToken', data.refreshToken);
-  
-      // Armazena TODOS os dados do usuário
+      // Store ALL user data
       setUser({
-        ...userResponse.data, // Inclui phone_number e outros campos
+        ...userResponse.data, // Includes phone_number and other fields
         token: data.token,
         refreshToken: data.refreshToken,
         role: decodedToken.role,
@@ -142,6 +138,15 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+// Custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
 export default AuthContext;

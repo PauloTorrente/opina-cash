@@ -9,6 +9,7 @@ import SurveyAccess from './pages/SurveyAccess';
 import Results from './pages/Results';
 import CreateSurvey from './pages/CreateSurvey'; 
 import Profile from './pages/Profile';
+import Dashboard from './pages/Dashboard';
 import Navbar from './components/Navbar';
 import PrivateRoute from './routes/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -70,6 +71,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <Profile />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute adminOnly={true}>
+                  <Dashboard />
                 </PrivateRoute>
               }
             />

@@ -165,8 +165,10 @@ const Navbar = () => {
           >
             {user ? ( // Check if user is logged in
               <>
-                {user.role === 'Admin' && (
+                {/* Show dashboard link only for admin users */}
+                {user.role.toLowerCase() === 'admin' && (
                   <>
+                    <NavLink to="/dashboard">Dashboard</NavLink>
                     <NavLink to="/results">Resultados</NavLink>
                     <NavLink to="/create-survey">Crear Encuesta</NavLink>
                   </>

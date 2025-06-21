@@ -14,6 +14,7 @@ export const useSurvey = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Process Imgur URL to standard format
   const processImgurUrl = (url) => {
     if (!url) return null;
     if (url.includes('i.imgur.com')) return url;
@@ -21,6 +22,7 @@ export const useSurvey = () => {
     return `https://i.imgur.com/${imageId}.jpg`;
   };
 
+  // Convert YouTube URL to embed format
   const processYoutubeUrl = (url) => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -34,29 +36,36 @@ export const useSurvey = () => {
       try {
         if (!user) return;
 
+        // Get authentication token
         const token = localStorage.getItem('token');
-        if (!token) throw new Error('Token de autenticação não encontrado');
+        if (!token) throw new Error('Authentication token not found');
 
+        // Fetch survey data from API
         const response = await fetch(`https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
-        if (!response.ok) throw new Error('Error al obtener la encuesta');
+        if (!response.ok) throw new Error('Error fetching survey');
         
         const surveyData = await response.json();
-        if (!surveyData) throw new Error('Encuesta no encontrada');
+        if (!surveyData) throw new Error('Survey not found');
 
+        // Parse questions (handle both string and object formats)
         let questions = typeof surveyData.questions === 'string' 
           ? JSON.parse(surveyData.questions) 
           : surveyData.questions;
 
+        // Normalize question structure
         questions = questions.map((q, index) => {
+          // Handle simple string questions
           if (typeof q === 'string') return {
             questionId: index + 1,
             question: q,
-            type: 'text'
+            type: 'text',
+            answerLength: null
           };
           
+          // Handle full question objects
           const questionId = q.id || q.questionId || index + 1;
           return {
             questionId,
@@ -65,11 +74,19 @@ export const useSurvey = () => {
             type: q.type || 'text',
             options: q.options || [],
             imagem: q.imagem ? processImgurUrl(q.imagem) : null,
-            video: q.video ? processYoutubeUrl(q.video) : null
+            video: q.video ? processYoutubeUrl(q.video) : null,
+            // CRITICAL FIX: Ensure answerLength is preserved
+            answerLength: q.answerLength ? String(q.answerLength) : null
           };
         });
 
-        setSurvey({ ...surveyData, questions });
+        // Create final survey object
+        const fixedSurvey = { 
+          ...surveyData, 
+          questions
+        };
+
+        setSurvey(fixedSurvey);
       } catch (error) {
         setError(error.message);
       } finally {

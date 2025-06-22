@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import ResponseChart from "../../components/results/ResponseChart";
-import CommentSection from '../../components/Results/CommentSection';
+import CommentSection from '../../components/results/CommentSection';
 import StatisticsSection from '../../components/results/StatisticsSection';
 import { processChartData } from '../../utils/processChartData';
 

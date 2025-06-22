@@ -10,7 +10,7 @@ import Results from './pages/results/Results';
 import CreateSurvey from './pages/survey/CreateSurvey'; 
 import Profile from './pages/profile/Profile';
 import Dashboard from './pages/dashboard/Dashboard';
-import Navbar from './components/layout/navbar/Navbar';
+import Navbar from "./components/layout/Navbar/Navbar";
 import PrivateRoute from './routes/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
 import styled from 'styled-components';

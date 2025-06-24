@@ -83,10 +83,24 @@ export const ResponsiveImage = styled.img`
   width: 100%;
   height: auto;
   border-radius: 8px;
-  object-fit: cover;
-  max-height: 250px;
+  /* Use 'contain' for vertical images to show full image, 'cover' for horizontal to fill container */
+  object-fit: ${props => props.$isVertical ? 'contain' : 'cover'};
+  /* Larger max-height for vertical images to prevent them from being too small */
+  max-height: ${props => props.$isVertical ? '500px' : '250px'};
   margin: 1rem 0;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: block;
+  
+  /* Special styles for vertical images */
+  ${props => props.$isVertical && `
+    /* Center vertical images horizontally */
+    margin-left: auto;
+    margin-right: auto;
+    /* Let the image determine its width naturally */
+    width: auto;
+    /* But never exceed container width */
+    max-width: 100%;
+  `}
 `;
 
 export const ResponsiveVideo = styled.div`
@@ -189,8 +203,8 @@ export const CharacterCounter = styled.div`
   font-size: 0.8rem;
   margin-top: 0.25rem;
   color: ${props => {
-    if (props.$current > props.$max) return '#e53e3e'; // Vermelho se exceder
-    if (props.$current > props.$max * 0.8) return '#dd6b20'; // Laranja se próximo do limite
-    return '#718096'; // Cinza padrão
+    if (props.$current > props.$max) return '#e53e3e'; // Red if exceeds limit
+    if (props.$current > props.$max * 0.8) return '#dd6b20'; // Orange if approaching limit
+    return '#718096'; // Default gray
   }};
 `;

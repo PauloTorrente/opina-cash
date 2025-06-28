@@ -6,6 +6,12 @@ const fadeIn = keyframes`
   to { opacity: 1; }
 `;
 
+const pulse = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+`;
+
 // Containers
 export const Container = styled.div`
   padding: 1rem;
@@ -14,6 +20,7 @@ export const Container = styled.div`
   box-sizing: border-box;
   margin: 0 auto;
   text-align: center;
+  animation: ${fadeIn} 0.3s ease-out;
 
   @media (min-width: 768px) {
     max-width: 600px;
@@ -62,6 +69,13 @@ export const QuestionText = styled.h3`
   }
 `;
 
+export const Message = styled.p`
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #4a5568;
+  margin-bottom: 1.5rem;
+`;
+
 // Form elements
 export const Select = styled.select`
   width: 100%;
@@ -83,22 +97,16 @@ export const ResponsiveImage = styled.img`
   width: 100%;
   height: auto;
   border-radius: 8px;
-  /* Use 'contain' for vertical images to show full image, 'cover' for horizontal to fill container */
   object-fit: ${props => props.$isVertical ? 'contain' : 'cover'};
-  /* Larger max-height for vertical images to prevent them from being too small */
   max-height: ${props => props.$isVertical ? '500px' : '250px'};
   margin: 1rem 0;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   display: block;
   
-  /* Special styles for vertical images */
   ${props => props.$isVertical && `
-    /* Center vertical images horizontally */
     margin-left: auto;
     margin-right: auto;
-    /* Let the image determine its width naturally */
     width: auto;
-    /* But never exceed container width */
     max-width: 100%;
   `}
 `;
@@ -157,7 +165,7 @@ export const ModalText = styled.p`
   color: #555;
 `;
 
-// New components
+// Button components
 export const SubmitButton = styled.button`
   width: 100%;
   padding: 14px;
@@ -198,13 +206,57 @@ export const InputFieldStyled = styled.input`
   }
 `;
 
+// Survey Already Responded Components
+export const AlreadyRespondedContainer = styled(Container)`
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+`;
+
+export const TimerContainer = styled.div`
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #edf2f7;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  animation: ${pulse} 2s infinite;
+  
+  svg {
+    margin-right: 0.5rem;
+    font-size: 1.5rem;
+  }
+`;
+
+export const RedirectText = styled.span`
+  font-size: 0.9rem;
+  color: #4a5568;
+`;
+
 export const CharacterCounter = styled.div`
   text-align: right;
   font-size: 0.8rem;
   margin-top: 0.25rem;
   color: ${props => {
-    if (props.$current > props.$max) return '#e53e3e'; // Red if exceeds limit
-    if (props.$current > props.$max * 0.8) return '#dd6b20'; // Orange if approaching limit
-    return '#718096'; // Default gray
+    if (props.$current > props.$max) return '#e53e3e';
+    if (props.$current > props.$max * 0.8) return '#dd6b20';
+    return '#718096';
   }};
+`;
+
+// Warning Message
+export const WarningMessage = styled.div`
+  background-color: #fffaf0;
+  border-left: 4px solid #dd6b20;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 0 4px 4px 0;
+  text-align: left;
+  
+  p {
+    margin: 0;
+    color: #744210;
+  }
 `;

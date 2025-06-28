@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { QuestionContainer,QuestionText,Select,MediaContainer,ResponsiveImage,ResponsiveVideo,InputFieldStyled
-} from '../../components/survey/Survey.styles.jsx';
+import { QuestionContainer, QuestionText,  Select, MediaContainer, ResponsiveImage, ResponsiveVideo, InputFieldStyled} 
+from '../../components/survey/Survey.styles.jsx';
 import CharacterCounter from './CharacterCounter';
 
 const SurveyQuestion = ({ question, response, onResponseChange }) => {
@@ -9,13 +9,13 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
   
   // Configuration for different answer length requirements
   const answerLengthRequirements = {
-    short: { min: 1, max: 100 },
-    medium: { min: 10, max: 300 },
-    long: { min: 50, max: 1000 },
-    unrestricted: { min: 0, max: Infinity }
+    short: { min: 1, max: 100 },    // Short text responses (1-100 chars)
+    medium: { min: 10, max: 300 },  // Medium text responses (10-300 chars)
+    long: { min: 50, max: 1000 },   // Long text responses (50-1000 chars)
+    unrestricted: { min: 0, max: Infinity } // No length restrictions
   };
 
-  // Helper function to extract dimensions from image URL if available
+  // Extracts dimensions from image URL if dimensions are included in filename
   const getDimensionsFromUrl = (url) => {
     const dimensionMatch = url.match(/(\d+)x(\d+)/);
     if (dimensionMatch) {
@@ -27,18 +27,18 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
     return null;
   };
 
-  // Effect to determine image dimensions when image URL changes
+  // Effect to determine image dimensions for proper responsive rendering
   useEffect(() => {
     if (!question.imagem) return;
     
-    // First try to get dimensions from URL pattern (fastest method)
+    // First try to get dimensions from URL pattern (most efficient)
     const urlDimensions = getDimensionsFromUrl(question.imagem);
     if (urlDimensions) {
       setImageDimensions(urlDimensions);
       return;
     }
     
-    // Fallback: Load image to get dimensions (works for all images)
+    // Fallback: Load image to get actual dimensions
     const img = new Image();
     img.src = question.imagem;
     img.onload = () => {
@@ -47,27 +47,30 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
         height: img.height
       });
     };
-    // Cleanup function to remove event listener
     return () => {
-      img.onload = null;
+      img.onload = null; // Cleanup event listener
     };
   }, [question.imagem]);
 
-  // Determine if image is vertical based on aspect ratio
+  // Determines if image is vertical based on aspect ratio
   const isVerticalImage = imageDimensions.height / imageDimensions.width > 1.5;
 
-  // Maps answer length types to their configuration
+  // Maps different answer length types to their configuration
   const getLengthConfig = () => {
     const lengthMap = {
+      // English variations
       'short': answerLengthRequirements.short,
       'medium': answerLengthRequirements.medium,
       'long': answerLengthRequirements.long,
+      // Portuguese variations
       'curto': answerLengthRequirements.short,
       'mediano': answerLengthRequirements.medium,
       'longo': answerLengthRequirements.long,
+      // Spanish variations
       'corto': answerLengthRequirements.short
     };
 
+    // Normalize the answer length type string
     const rawLength = question.answerLength || '';
     const cleanLength = rawLength.toString().toLowerCase().trim();
     
@@ -76,8 +79,9 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
 
   // Validates if response meets length requirements
   const isResponseValid = (answer = '') => {
+    const answerStr = typeof answer === 'string' ? answer : JSON.stringify(answer);
     const { min, max } = getLengthConfig();
-    const length = answer.length;
+    const length = answerStr.length;
     return length >= min && length <= max;
   };
 
@@ -85,6 +89,8 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
   const getLengthLabel = () => {
     const rawLength = question.answerLength || '';
     const cleanLength = rawLength.toString().toLowerCase().trim();
+    
+    // Return appropriate label based on answer length type
     switch(cleanLength) {
       case 'short':
       case 'curto':
@@ -100,19 +106,20 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
         return '∞ No character limit';
     }
   };
+  
   const lengthConfig = getLengthConfig();
   return (
     <QuestionContainer>
       <QuestionText>
-        {question.questionId}. {question.question}
-        
+        {question.questionId}. {question.question}        
+        {/* Show length requirements only for text questions */}
         {question.type === 'text' && (
           <small style={{ display: 'block', marginTop: '0.5rem', color: '#4a5568' }}>
             {getLengthLabel()}
           </small>
         )}
-      </QuestionText>
-      
+      </QuestionText> 
+      {/* Render image if provided */}
       {question.imagem && (
         <MediaContainer>
           <ResponsiveImage 
@@ -134,7 +141,7 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
           />
         </MediaContainer>
       )}
-
+      {/* Render video if provided */}
       {question.video && (
         <MediaContainer>
           <ResponsiveVideo>
@@ -149,35 +156,35 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
           </ResponsiveVideo>
         </MediaContainer>
       )}
-
+      {/* Render appropriate input based on question type */}
       {question.type === 'text' ? (
         <div>
           <InputFieldStyled
             type="text"
-            placeholder="Type your answer here..."
-            value={response}
+            placeholder="Danos tu opinion "
+            value={response || ''}
             onChange={(e) => onResponseChange(question.questionId, e.target.value)}
             required
             style={{
-              borderColor: response === '' ? '' : 
+              borderColor: !response ? '' : 
                 isResponseValid(response) ? '#38a169' : '#e53e3e'
             }}
           />
-          
+          {/* Show character counter for text questions */}
           <CharacterCounter 
-            current={response.length} 
+            current={response?.length || 0} 
             max={lengthConfig.max}
             min={lengthConfig.min}
           />
         </div>
       ) : (
         <Select
-          value={response}
+          value={response || ''}
           onChange={(e) => onResponseChange(question.questionId, e.target.value)}
           required
         >
           <option value="" disabled>Select an option</option>
-          {question.options.map((option, i) => (
+          {question.options?.map((option, i) => (
             <option key={`opt-${i}`} value={option}>
               {String.fromCharCode(65 + i)}. {option}
             </option>

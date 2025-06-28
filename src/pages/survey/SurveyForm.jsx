@@ -9,23 +9,29 @@ const SurveyForm = ({ survey, accessToken, onModalClose }) => {
   const [responses, setResponses] = useState({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  
   // Handle change in user responses
   const handleResponseChange = (questionId, answer) => {
     setResponses(prev => ({ ...prev, [questionId]: answer }));
   };
+  
   // Handle change in terms acceptance checkbox
   const handleTermsChange = (e) => {
     setTermsAccepted(e.target.checked);
   };
+  
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     // Don't submit if valid responses are missing
     if (!allResponsesValid) return;
+    
     try {
       // Get authentication token from local storage
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Authentication token not found');
+      
       // Prepare response data for API
       const responseData = survey.questions
         .map(question => ({
@@ -33,6 +39,7 @@ const SurveyForm = ({ survey, accessToken, onModalClose }) => {
           answer: responses[question.questionId] || ''
         }))
         .filter(item => item.answer !== '');
+      
       // Send responses to backend API
       const response = await fetch(
         `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
@@ -45,18 +52,20 @@ const SurveyForm = ({ survey, accessToken, onModalClose }) => {
           body: JSON.stringify(responseData),
         }
       );
+      
       // Handle API errors
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Error submitting responses');
       }
+      
       // Show success modal on successful submission
       setShowSuccessModal(true);
     } catch (error) {
-      // Show error message if submission fails
       alert(error.message);
     }
   };
+  
   // Memoized validation for all responses
   const allResponsesValid = useMemo(() => {
     // Check each question for valid response
@@ -92,6 +101,7 @@ const SurveyForm = ({ survey, accessToken, onModalClose }) => {
 
   // Check if form is ready for submission
   const formComplete = allResponsesValid && termsAccepted;
+  
   return (
     <>
       <Container>
@@ -124,8 +134,8 @@ const SurveyForm = ({ survey, accessToken, onModalClose }) => {
             {formComplete 
               ? 'Enviar respuestas' 
               : !allResponsesValid 
-                ? 'Complete todas las respuestas' 
-                : 'Acepte los términos para continuar'}
+                ? 'Complete todas as respostas' 
+                : 'Aceite os termos para continuar'}
           </SubmitButton>
         </form>
       </Container>

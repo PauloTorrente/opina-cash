@@ -1,5 +1,15 @@
 import styled, { keyframes } from 'styled-components';
 
+const defaultTheme = {
+  colors: {
+    primaryLight: '#e0e7ff',
+    primaryDark: '#4f46e5',
+    secondary: '#6c63ff',
+    textPrimary: '#34495e',
+    textSecondary: '#4a5568'
+  }
+};
+
 // Animations
 const fadeIn = keyframes`
   from { opacity: 0; }
@@ -76,6 +86,18 @@ export const Message = styled.p`
   margin-bottom: 1.5rem;
 `;
 
+export const SelectionTypeIndicator = styled.div`
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  background-color: ${({ theme }) => theme?.colors?.primaryLight || defaultTheme.colors.primaryLight};
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 10px;
+  color: ${({ theme }) => theme?.colors?.primaryDark || defaultTheme.colors.primaryDark};
+  font-weight: 500;
+  border: 1px solid ${({ theme }) => theme?.colors?.secondary || defaultTheme.colors.secondary};
+`;
+
 // Form elements
 export const Select = styled.select`
   width: 100%;
@@ -90,6 +112,132 @@ export const Select = styled.select`
   background-position: right 10px center;
   background-size: 1em;
   margin: 1rem 0;
+`;
+
+// Option components
+export const OptionsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+`;
+
+export const OptionItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #f3f4f6;
+  }
+`;
+
+export const RadioInput = styled.input.attrs({ type: 'radio' })`
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #6c63ff;
+  border-radius: 50%;
+  margin-right: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+
+  &:checked {
+    border-color: #6c63ff;
+    background-color: #6c63ff;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background-color: white;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.3);
+  }
+`;
+
+export const RadioLabel = styled.label`
+  font-size: 1rem;
+  color: #4a5568;
+  cursor: pointer;
+  flex-grow: 1;
+  user-select: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: ${props => props.selected ? '#f0f3ff' : 'transparent'};
+  border: 1px solid ${props => props.selected ? '#6c63ff' : 'transparent'};
+  transition: all 0.2s;
+`;
+
+// Checkbox components
+export const CheckboxContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+`;
+
+export const StyledCheckbox = styled.input.attrs({ type: 'checkbox' })`
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #6c63ff;
+  border-radius: 4px;
+  margin-right: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+
+  &:checked {
+    background-color: #6c63ff;
+    border-color: #6c63ff;
+
+    &::after {
+      content: '✓';
+      position: absolute;
+      color: white;
+      font-size: 14px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.3);
+  }
+`;
+
+export const CheckboxLabel = styled.label`
+  font-size: 1rem;
+  color: #4a5568;
+  cursor: pointer;
+  flex-grow: 1;
+  user-select: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: ${props => props.selected ? '#f0f3ff' : 'transparent'};
+  border: 1px solid ${props => props.selected ? '#6c63ff' : 'transparent'};
+  transition: all 0.2s;
 `;
 
 // Media components
@@ -258,5 +406,56 @@ export const WarningMessage = styled.div`
   p {
     margin: 0;
     color: #744210;
+  }
+`;
+
+export const ResponseLimitContainer = styled(Container)`
+  background-color: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  
+  h2 {
+    color: #4c6ef5;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+  }
+  
+  p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #4a5568;
+    margin-bottom: 2rem;
+  }
+`;
+
+export const HomeButton = styled.button`
+  padding: 12px 24px;
+  background-color: #4c6ef5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  
+  &:hover {
+    background-color: #3b5bdb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 110, 245, 0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+  
+  svg {
+    width: 18px;
+    height: 18px;
   }
 `;

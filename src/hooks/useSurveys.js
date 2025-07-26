@@ -62,20 +62,26 @@ export const useSurvey = () => {
             questionId: index + 1,
             question: q,
             type: 'text',
+            multipleSelections: false, // Default for text questions
             answerLength: null
           };
           
           // Handle full question objects
           const questionId = q.id || q.questionId || index + 1;
+          
+          // Convert "yes"/"no" to boolean for internal use
+          const isMultiple = q.multipleSelections === "yes";
+          
           return {
             questionId,
             id: questionId,
             question: q.question || q.text,
             type: q.type || 'text',
             options: q.options || [],
+            multipleSelections: isMultiple, // Store as boolean internally
+            originalMultipleSelection: q.multipleSelections, // Keep original value
             imagem: q.imagem ? processImgurUrl(q.imagem) : null,
             video: q.video ? processYoutubeUrl(q.video) : null,
-            // CRITICAL FIX: Ensure answerLength is preserved
             answerLength: q.answerLength ? String(q.answerLength) : null
           };
         });
@@ -83,7 +89,11 @@ export const useSurvey = () => {
         // Create final survey object
         const fixedSurvey = { 
           ...surveyData, 
-          questions
+          questions,
+          // Preserve original multipleSelections format in metadata
+          _metadata: {
+            multipleSelectionsFormat: 'yes/no' // Document the expected format
+          }
         };
 
         setSurvey(fixedSurvey);

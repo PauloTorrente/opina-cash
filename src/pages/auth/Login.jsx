@@ -50,6 +50,21 @@ const RegisterPrompt = styled.div`
   }
 `;
 
+const ForgotPasswordLink = styled.div`
+  text-align: right;
+  margin-top: -0.5rem;
+  
+  a {
+    color: #6c63ff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
 const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -108,6 +123,9 @@ const Login = () => {
           onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
           required
         />
+        <ForgotPasswordLink>
+          <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+        </ForgotPasswordLink>
         <Button type="submit">Entrar</Button>
       </Form>
       {error && <ErrorMessage>{error}</ErrorMessage>}

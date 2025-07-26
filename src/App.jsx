@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/home/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import RegistrationSuccess from './pages/auth/RegistrationSuccess';
 import ConditionTerms from './pages/auth/ConditionTerms';
 import Survey from './pages/survey/Survey';
@@ -29,6 +31,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/register-success/:confirmationToken" element={<RegistrationSuccess />} />
             <Route path="/terms" element={<ConditionTerms />} />
             <Route path="/survey" element={<SurveyAccess />} />

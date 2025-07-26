@@ -34,3 +34,22 @@ export const updateUserProfile = async (token, updatedData) => {
   });
   return response.data;
 };
+
+export const requestPasswordReset = async (email) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Falha ao solicitar redefinição de senha');
+  }
+};
+
+export const resetPassword = async (token, newPassword) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/auth/reset-password`, { token, newPassword });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || 'Falha ao redefinir senha');
+  }
+};
+

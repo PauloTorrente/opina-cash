@@ -128,7 +128,7 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
   return (
     <QuestionContainer data-question-id={question.questionId}>
       <QuestionText>
-        {question.questionId}. {question.question}
+        {question.question}
         {question.type === 'text' && (
           <small style={{ display: 'block', marginTop: '0.5rem', color: '#4a5568' }}>
             {getLengthLabel()}

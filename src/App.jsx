@@ -7,7 +7,6 @@ import ResetPassword from './pages/auth/ResetPassword';
 import RegistrationSuccess from './pages/auth/RegistrationSuccess';
 import ConditionTerms from './pages/auth/ConditionTerms';
 import Survey from './pages/survey/Survey';
-import SurveyAccess from './pages/survey/SurveyAccess';
 import Results from './pages/results/Results';
 import CreateSurvey from './pages/survey/CreateSurvey'; 
 import Profile from './pages/profile/Profile';
@@ -35,7 +34,6 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/register-success/:confirmationToken" element={<RegistrationSuccess />} />
             <Route path="/terms" element={<ConditionTerms />} />
-            <Route path="/survey" element={<SurveyAccess />} />
 
             {/* Rotas protegidas */}
             <Route

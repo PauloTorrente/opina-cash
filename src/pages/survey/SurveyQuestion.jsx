@@ -1,41 +1,40 @@
+import { useEffect } from 'react';
 import {
-  QuestionContainer,
-  QuestionText,
-  MediaContainer,
-  ResponsiveImage,
-  ResponsiveVideo,
-  InputFieldStyled,
-  OptionsContainer,
-  OptionItem,
-  RadioInput,
-  RadioLabel,
-  StyledCheckbox,
-  CheckboxLabel,
-  SelectionTypeIndicator,
+  QuestionContainer, QuestionText, MediaContainer, ResponsiveImage,
+  ResponsiveVideo, InputFieldStyled, OptionsContainer, OptionItem,
+  RadioInput, RadioLabel, StyledCheckbox, CheckboxLabel, SelectionTypeIndicator,
 } from '../../components/survey/Survey.styles.jsx';
 import CharacterCounter from './CharacterCounter';
 import { useSurveyQuestionHandlers } from './SurveyQuestionHandlers';
 
 const SurveyQuestion = ({ question, response, onResponseChange }) => {
   const {
-    imageDimensions,
-    isVerticalImage,
-    isSquareImage,
-    imageAspectRatio,
-    getLengthLabel,
-    handleTextChange,
-    handleOptionChange,
-    isResponseValid,
-    getLengthConfig
+    imageDimensions, isVerticalImage, isSquareImage, imageAspectRatio,
+    getLengthLabel, handleTextChange, handleOptionChange, isResponseValid,
+    getLengthConfig, validateResponseFormat, getCorrectedResponse
   } = useSurveyQuestionHandlers(question, response, onResponseChange);
 
-  // Render appropriate input component based on question type
+  // Validate response format on render
+  useEffect(() => {
+    const isValid = validateResponseFormat();
+    if (!isValid) {
+      console.error('❌ [RENDER] Invalid response format detected');
+    }
+  }, [question.questionId, response, validateResponseFormat]);
+
+  console.log('🔍 [RENDER] SurveyQuestion:', {
+    questionId: question.questionId,
+    type: question.type,
+    multiple: question.multipleSelections,
+    response: response
+  });
+
+  // Render input based on question type
   const renderInputComponent = () => {
     switch (question.type) {
       case 'text':
         const lengthConfig = getLengthConfig();
         const isValid = isResponseValid(response);
-
         return (
           <div>
             <InputFieldStyled
@@ -45,52 +44,45 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
               onChange={handleTextChange}
               required
               style={{
-                borderColor: !response ? '' : isValid ? '#38a169' : '#e53e3e',
-                boxShadow: !response ? '' : isValid ? '0 0 0 1px #38a169' : '0 0 0 1px #e53e3e'
+                borderColor: !response ? '' : isValid ? '#38a169' : '#e53e3e'
               }}
               aria-invalid={!isValid}
-              aria-describedby={`length-counter-${question.questionId}`}
             />
             <CharacterCounter
               current={response?.length || 0}
               max={lengthConfig.max}
               min={lengthConfig.min}
-              id={`length-counter-${question.questionId}`}
             />
           </div>
         );
 
       case 'multiple':
+        const correctedResponse = getCorrectedResponse();
+        const isMultipleSelection = question.multipleSelections === 'yes' || question.multipleSelections === true;
+
         return (
           <div>
             <SelectionTypeIndicator>
-              {question.multipleSelections
-                ? '🔘 Selección múltiple permitida'
-                : '⭕ Selección única'}
+              {isMultipleSelection ? '🔘 Multiple selection allowed' : '⭕ Single selection'}
             </SelectionTypeIndicator>
 
             <OptionsContainer>
               {question.options.map((option, index) => {
-                const isSelected = question.multipleSelections
-                  ? Array.isArray(response) && response.includes(option)
-                  : response === option;
+                const isSelected = isMultipleSelection
+                  ? Array.isArray(correctedResponse) && correctedResponse.includes(option)
+                  : correctedResponse === option;
 
                 return (
                   <OptionItem key={index}>
-                    {question.multipleSelections ? (
+                    {isMultipleSelection ? (
                       <>
                         <StyledCheckbox
                           type="checkbox"
-                          id={`q${question.questionId}-opt${index}`}
                           checked={isSelected}
                           onChange={() => handleOptionChange(option)}
-                          aria-label={`Seleccionar ${option}`}
-                          aria-checked={isSelected}
+                          aria-label={`Select ${option}`}
                         />
-                        <CheckboxLabel
-                          htmlFor={`q${question.questionId}-opt${index}`}
-                          selected={isSelected}
-                        >
+                        <CheckboxLabel selected={isSelected}>
                           {option}
                         </CheckboxLabel>
                       </>
@@ -98,17 +90,12 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
                       <>
                         <RadioInput
                           type="radio"
-                          id={`q${question.questionId}-opt${index}`}
                           name={`question-${question.questionId}`}
                           checked={isSelected}
                           onChange={() => handleOptionChange(option)}
-                          aria-label={`Seleccionar ${option}`}
-                          aria-checked={isSelected}
+                          aria-label={`Select ${option}`}
                         />
-                        <RadioLabel
-                          htmlFor={`q${question.questionId}-opt${index}`}
-                          selected={isSelected}
-                        >
+                        <RadioLabel selected={isSelected}>
                           {option}
                         </RadioLabel>
                       </>
@@ -121,6 +108,7 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
         );
 
       default:
+        console.warn('⚠️ Unsupported question type:', question.type);
         return null;
     }
   };
@@ -143,7 +131,7 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
             $isVertical={isVerticalImage}
             $isSquare={isSquareImage}
             $aspectRatio={imageAspectRatio}
-            alt={`Imagen para: ${question.question}`}
+            alt={`Image for: ${question.question}`}
             loading="lazy"
           />
         </MediaContainer>
@@ -154,7 +142,7 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
           <ResponsiveVideo>
             <iframe
               src={question.video}
-              title={`Video para: ${question.question}`}
+              title={`Video for: ${question.question}`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               frameBorder="0"

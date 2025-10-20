@@ -91,7 +91,7 @@ const SuccessModalUpdate = ({ onClose }) => {
             El botón estará disponible en {countdown} segundos...
           </CountdownText>
         ) : (
-          <ModalButton onClick={onClose}>Ir al dashboard</ModalButton>
+          <ModalButton onClick={onClose}>Ir a página inicial</ModalButton>
         )}
       </ModalContent>
     </ModalOverlay>

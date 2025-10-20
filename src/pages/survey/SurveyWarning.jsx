@@ -54,10 +54,7 @@ const SurveyWarning = ({ checked, onChange }) => {
         Importante
       </WarningTitle>
       <WarningText>
-        Al enviar tus respuestas, aceptas que serán evaluadas para determinar tu puntuación. 
-        Tu desempeño en esta encuesta afectará directamente la cantidad y frecuencia de 
-        encuestas futuras que recibirás. Respuestas completas y bien elaboradas aumentarán 
-        tus posibilidades de recibir más oportunidades.
+        Gracias por completar el Diagnóstico del Coeficiente Marcario Corporativo (CMC). En breve recibirá su reporte ejecutivo personalizado con los principales hallazgos y oportunidades para fortalecer su sistema de gestión de marca como activo estratégico.
       </WarningText>
       <CheckboxContainer>
         <CheckboxInput 

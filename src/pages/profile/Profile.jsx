@@ -4,7 +4,7 @@ import AuthContext from '../../context/AuthContext';
 import ProfileFormFields from '../../components/user/ProfileFormFields';
 import ChildrenFields from '../../components/user/ChildrenFields';
 import Button from '../../components/common/Button/Button';
-import SuccessModalUpdate from '../../components/common/Modal/SuccessModal';
+import SuccessModalUpdate from '../../components/common/Modal/SuccessModalUpdate';
 import ProfileProgress from '../../components/user/ProfileProgress';
 import { Container, Title } from '../../components/user/Profile.styles';
 import FormValidator from '../../components/common/FormValidator';

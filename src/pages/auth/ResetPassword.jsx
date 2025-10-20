@@ -54,13 +54,13 @@ const ResetPassword = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Extrai o token da query string
+    // Extraer el token de la cadena de consulta
     const queryParams = new URLSearchParams(location.search);
     const tokenParam = queryParams.get('token');
     if (tokenParam) {
       setToken(tokenParam);
     } else {
-      setError('Token inválido ou expirado.');
+      setError('Token inválido o expirado.');
     }
   }, [location]);
 
@@ -70,7 +70,7 @@ const ResetPassword = () => {
     setError('');
 
     if (newPassword !== confirmPassword) {
-      setError('As senhas não coincidem.');
+      setError('Las contraseñas no coinciden.');
       setIsLoading(false);
       return;
     }
@@ -78,12 +78,12 @@ const ResetPassword = () => {
     try {
       const response = await resetPasswordService(token, newPassword);
       setSuccess(response.message);
-      // Redirecionar para login após 3 segundos
+      // Redirigir al login después de 3 segundos
       setTimeout(() => {
         navigate('/login');
       }, 3000);
     } catch (err) {
-      setError(err.message || 'Ocorreu um erro. Por favor, tente novamente.');
+      setError(err.message || 'Ocurrió un error. Por favor, inténtelo de nuevo.');
     } finally {
       setIsLoading(false);
     }
@@ -91,14 +91,14 @@ const ResetPassword = () => {
 
   return (
     <FormContainer>
-      <FormTitle>Definir Nova Senha</FormTitle>
+      <FormTitle>Establecer Nueva Contraseña</FormTitle>
       {success && <SuccessMessage>{success}</SuccessMessage>}
       {error && <ErrorMessage>{error}</ErrorMessage>}
       <Form onSubmit={handleSubmit}>
         <InputField
           type="password"
           name="newPassword"
-          placeholder="Nova senha"
+          placeholder="Nueva contraseña"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           required
@@ -106,13 +106,13 @@ const ResetPassword = () => {
         <InputField
           type="password"
           name="confirmPassword"
-          placeholder="Confirme a nova senha"
+          placeholder="Confirmar nueva contraseña"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
         />
         <Button type="submit" disabled={isLoading || !token}>
-          {isLoading ? 'Redefinindo...' : 'Redefinir Senha'}
+          {isLoading ? 'Restableciendo...' : 'Restablecer Contraseña'}
         </Button>
       </Form>
     </FormContainer>

@@ -103,8 +103,9 @@ export const useSurveyForm = ({ survey, accessToken }) => {
 
       console.log('📤 Sending responses to backend:', responseData);
 
+      // CHANGED: Using permissive endpoint to handle complex question IDs
       const response = await fetch(
-        `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
+        `https://enova-backend.onrender.com/api/surveys/respond-permissive?accessToken=${accessToken}`,
         {
           method: 'POST',
           headers: {

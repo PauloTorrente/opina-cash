@@ -1,124 +1,130 @@
 import { useEffect } from 'react';
 import {
   QuestionContainer, QuestionText, MediaContainer, ResponsiveImage,
-  ResponsiveVideo, InputFieldStyled, OptionsContainer, OptionItem,
-  RadioInput, RadioLabel, StyledCheckbox, CheckboxLabel, SelectionTypeIndicator,
+  ResponsiveVideo, InputFieldStyled, OptionsContainer,
+  RadioInput, RadioLabel, StyledCheckbox, OptionalItem, CheckboxLabel2
 } from '../../components/survey/Survey.styles.jsx';
 import CharacterCounter from './CharacterCounter';
 import { useSurveyQuestionHandlers } from './SurveyQuestionHandlers';
+import { FaCheckCircle, FaRegCircle, FaKeyboard } from 'react-icons/fa';
+import QuestionHeader from './QuestionHeader';
+import QuestionInputRenderer from './QuestionInputRenderer';
 
 const SurveyQuestion = ({ question, response, onResponseChange }) => {
   const {
     imageDimensions, isVerticalImage, isSquareImage, imageAspectRatio,
     getLengthLabel, handleTextChange, handleOptionChange, isResponseValid,
-    getLengthConfig, validateResponseFormat, getCorrectedResponse
+    getLengthConfig, getCorrectedResponse
   } = useSurveyQuestionHandlers(question, response, onResponseChange);
 
-  // Validate response format on render
-  useEffect(() => {
-    const isValid = validateResponseFormat();
-    if (!isValid) {
-      console.error('❌ [RENDER] Invalid response format detected');
+  // Helper function to detect question type and return styling info
+  const getQuestionTypeInfo = () => {
+    if (question.type === 'text') {
+      return {
+        type: 'text',
+        icon: <FaKeyboard size={14} />,
+        label: 'Respuesta abierta',
+        color: '#17a2b8',
+        bgColor: '#d1ecf1'
+      };
     }
-  }, [question.questionId, response, validateResponseFormat]);
 
-  console.log('🔍 [RENDER] SurveyQuestion:', {
-    questionId: question.questionId,
-    type: question.type,
-    multiple: question.multipleSelections,
-    response: response
-  });
+    const isMultipleSelection = question.multipleSelections === "yes" || question.multipleSelections === true;
+    const hasLimit = question.selectionLimit != null && question.selectionLimit > 0;
 
-  // Render input based on question type
-  const renderInputComponent = () => {
-    switch (question.type) {
-      case 'text':
-        const lengthConfig = getLengthConfig();
-        const isValid = isResponseValid(response);
-        return (
-          <div>
-            <InputFieldStyled
-              type="text"
-              placeholder="Escribe tu respuesta aquí..."
-              value={response || ''}
-              onChange={handleTextChange}
-              required
-              style={{
-                borderColor: !response ? '' : isValid ? '#38a169' : '#e53e3e'
-              }}
-              aria-invalid={!isValid}
-            />
-            <CharacterCounter
-              current={response?.length || 0}
-              max={lengthConfig.max}
-              min={lengthConfig.min}
-            />
-          </div>
-        );
-
-      case 'multiple':
-        const correctedResponse = getCorrectedResponse();
-        const isMultipleSelection = question.multipleSelections === 'yes' || question.multipleSelections === true;
-
-        return (
-          <div>
-            <SelectionTypeIndicator>
-              {isMultipleSelection ? '🔘 Multiple selection allowed' : '⭕ Single selection'}
-            </SelectionTypeIndicator>
-
-            <OptionsContainer>
-              {question.options.map((option, index) => {
-                const isSelected = isMultipleSelection
-                  ? Array.isArray(correctedResponse) && correctedResponse.includes(option)
-                  : correctedResponse === option;
-
-                return (
-                  <OptionItem key={index}>
-                    {isMultipleSelection ? (
-                      <>
-                        <StyledCheckbox
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleOptionChange(option)}
-                          aria-label={`Select ${option}`}
-                        />
-                        <CheckboxLabel selected={isSelected}>
-                          {option}
-                        </CheckboxLabel>
-                      </>
-                    ) : (
-                      <>
-                        <RadioInput
-                          type="radio"
-                          name={`question-${question.questionId}`}
-                          checked={isSelected}
-                          onChange={() => handleOptionChange(option)}
-                          aria-label={`Select ${option}`}
-                        />
-                        <RadioLabel selected={isSelected}>
-                          {option}
-                        </RadioLabel>
-                      </>
-                    )}
-                  </OptionItem>
-                );
-              })}
-            </OptionsContainer>
-          </div>
-        );
-
-      default:
-        console.warn('⚠️ Unsupported question type:', question.type);
-        return null;
+    if (isMultipleSelection) {
+      if (hasLimit) {
+        return {
+          type: 'multiple-limited',
+          icon: <FaCheckCircle size={14} />,
+          label: `Selección múltiple - Máximo ${question.selectionLimit}`,
+          color: '#dc3545',
+          bgColor: '#f8d7da'
+        };
+      } else {
+        return {
+          type: 'multiple-unlimited',
+          icon: <FaCheckCircle size={14} />,
+          label: 'Selección múltiple',
+          color: '#28a745',
+          bgColor: '#d4edda'
+        };
+      }
+    } else {
+      return {
+        type: 'single',
+        icon: <FaRegCircle size={14} />,
+        label: 'Selección única',
+        color: '#007bff',
+        bgColor: '#cce7ff'
+      };
     }
+  };
+
+  const questionType = getQuestionTypeInfo();
+
+  // Logic to detect selection limits for multiple choice questions
+  const getSelectionLimitInfo = () => {
+    const isMultipleSelection = question.multipleSelections === "yes" || question.multipleSelections === true;
+    
+    if (!isMultipleSelection) {
+      return { hasLimit: false, current: 0, max: 0 };
+    }
+
+    const selectionLimit = question.selectionLimit;
+    const hasLimit = selectionLimit != null && selectionLimit !== '' && Number(selectionLimit) > 0;
+    const limitValue = hasLimit ? Number(selectionLimit) : 0;
+    
+    const currentSelections = Array.isArray(response) ? response.length : 0;
+    
+    return {
+      hasLimit,
+      current: currentSelections,
+      max: limitValue
+    };
+  };
+
+  const limitInfo = getSelectionLimitInfo();
+
+  // Handle option selection with limit validation
+  const handleOptionChangeWithLimit = (option) => {
+    const isMultipleSelection = question.multipleSelections === "yes" || question.multipleSelections === true;
+    
+    if (!isMultipleSelection) {
+      handleOptionChange(option);
+      return;
+    }
+
+    const currentArray = Array.isArray(response) ? response : [];
+    
+    // Check limit only when adding new options
+    if (!currentArray.includes(option)) {
+      if (limitInfo.hasLimit && limitInfo.current >= limitInfo.max) {
+        alert(`Solo puedes seleccionar hasta ${limitInfo.max} opciones. Desmarca algunas para seleccionar otras.`);
+        return;
+      }
+    }
+
+    handleOptionChange(option);
   };
 
   return (
     <QuestionContainer data-question-id={question.questionId}>
+      {/* HEADER WITH QUESTION TYPE INDICATOR */}
+      <QuestionHeader 
+        questionType={questionType}
+        question={question}
+      />
+
       <QuestionText>
         {question.question}
         {question.type === 'text' && (
-          <small style={{ display: 'block', marginTop: '0.5rem', color: '#4a5568' }}>
+          <small style={{ 
+            display: 'block', 
+            marginTop: '0.5rem', 
+            color: '#6c757d',
+            fontSize: '0.9rem'
+          }}>
             {getLengthLabel()}
           </small>
         )}
@@ -131,7 +137,7 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
             $isVertical={isVerticalImage}
             $isSquare={isSquareImage}
             $aspectRatio={imageAspectRatio}
-            alt={`Image for: ${question.question}`}
+            alt={`Imagen para: ${question.question}`}
             loading="lazy"
           />
         </MediaContainer>
@@ -142,7 +148,7 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
           <ResponsiveVideo>
             <iframe
               src={question.video}
-              title={`Video for: ${question.question}`}
+              title={`Video para: ${question.question}`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               frameBorder="0"
@@ -151,7 +157,18 @@ const SurveyQuestion = ({ question, response, onResponseChange }) => {
         </MediaContainer>
       )}
 
-      {renderInputComponent()}
+      {/* RENDER INPUT COMPONENT BASED ON QUESTION TYPE */}
+      <QuestionInputRenderer
+        question={question}
+        response={response}
+        limitInfo={limitInfo}
+        handleTextChange={handleTextChange}
+        handleOptionChangeWithLimit={handleOptionChangeWithLimit}
+        handleOptionChange={handleOptionChange}
+        getLengthConfig={getLengthConfig}
+        isResponseValid={isResponseValid}
+        getCorrectedResponse={getCorrectedResponse}
+      />
     </QuestionContainer>
   );
 };

@@ -459,3 +459,58 @@ export const HomeButton = styled.button`
     height: 18px;
   }
 `;
+
+export const SelectionLimitInfo = styled.div`
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  background-color: ${props => props.$isAtLimit ? '#fed7d7' : '#e6fffa'};
+  color: ${props => props.$isAtLimit ? '#c53030' : '#234e52'};
+  border-radius: 12px;
+  font-weight: 500;
+  border: 1px solid ${props => props.$isAtLimit ? '#feb2b2' : '#81e6d9'};
+`;
+
+// Limit warning
+export const LimitWarning = styled.div`
+  background-color: #fffaf0;
+  border-left: 4px solid #dd6b20;
+  padding: 8px 12px;
+  margin: 8px 0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #744210;
+`;
+
+// Updated OptionItem with disabled states
+export const OptionalItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  opacity: ${props => props.$disabled ? 0.6 : 1};
+  cursor: ${props => props.$disabled ? 'not-allowed' : 'default'};
+  
+  &:hover {
+    background-color: ${props => props.$disabled ? 'transparent' : '#f3f4f6'};
+  }
+  
+  ${props => props.$isAtLimit && `
+    background-color: #f7fafc;
+    border: 1px dashed #cbd5e0;
+  `}
+`;
+
+// Updated CheckboxLabel with disabled state
+export const CheckboxLabel2 = styled.label`
+  font-size: 1rem;
+  color: ${props => props.$disabled ? '#a0aec0' : '#4a5568'};
+  cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
+  flex-grow: 1;
+  user-select: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: ${props => props.selected ? '#f0f3ff' : 'transparent'};
+  border: 1px solid ${props => props.selected ? '#6c63ff' : 'transparent'};
+  transition: all 0.2s;
+`;

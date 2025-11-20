@@ -84,7 +84,7 @@ export default function InfoReminder() {
         onClick={handleClick}
       >
         <FaGift className="icon" />
-        <h3>¡Gana 7 pesos ahora!</h3>
+        <h3>¡Gana X Euros ahora!</h3>
         <p>Haz clic aquí para completar tu perfil y recibir tu recompensa 🎉</p>
       </ReminderCard>
     </ReminderOverlay>

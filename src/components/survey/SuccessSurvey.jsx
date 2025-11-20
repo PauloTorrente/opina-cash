@@ -7,7 +7,7 @@ export const SuccessModal = ({ onClose }) => (
     <ModalContent>
       <ModalTitle>¡Encuesta completada!</ModalTitle>
       <ModalText>
-        Gracias por participar. Ya se va depositar en tu cuenta 70 pesos.
+        Gracias por participar. Ya se va depositar en tu cuenta X Euros.
       </ModalText>
       <Button onClick={onClose}>Volver al inicio</Button>
     </ModalContent>

@@ -17,6 +17,27 @@ const FormContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+  }
+`;
+
+const FormCard = styled.div`
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+
+  @media (max-width: 480px) {
+    padding: 1.5rem;
+    box-shadow: none;
+    background: transparent;
+  }
 `;
 
 const FormTitle = styled.h2`
@@ -24,6 +45,10 @@ const FormTitle = styled.h2`
   color: #6c63ff;
   margin-bottom: 1.5rem;
   font-size: 1.8rem;
+  
+  @media (max-width: 480px) {
+    font-size: 1.6rem;
+  }
 `;
 
 const ErrorMessage = styled.p`
@@ -53,6 +78,7 @@ const RegisterPrompt = styled.div`
 const ForgotPasswordLink = styled.div`
   text-align: right;
   margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
   
   a {
     color: #6c63ff;
@@ -69,6 +95,7 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
+  width: 100%;
 `;
 
 const Login = () => {
@@ -105,34 +132,36 @@ const Login = () => {
 
   return (
     <FormContainer>
-      <FormTitle>Iniciar sesión</FormTitle>
-      <Form onSubmit={handleSubmit}>
-        <InputField
-          type="email"
-          name="email"
-          placeholder="Correo electrónico"
-          value={credentials.email}
-          onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
-          required
-        />
-        <InputField
-          type="password"
-          name="password"
-          placeholder="Contraseña"
-          value={credentials.password}
-          onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-          required
-        />
-        <ForgotPasswordLink>
-          <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
-        </ForgotPasswordLink>
-        <Button type="submit">Entrar</Button>
-      </Form>
-      {error && <ErrorMessage>{error}</ErrorMessage>}
-      
-      <RegisterPrompt>
-        ¿No tienes una cuenta? <Link to="/register">Regístrate aquí</Link>
-      </RegisterPrompt>
+      <FormCard>
+        <FormTitle>Iniciar sesión</FormTitle>
+        <Form onSubmit={handleSubmit}>
+          <InputField
+            type="email"
+            name="email"
+            placeholder="Correo electrónico"
+            value={credentials.email}
+            onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+            required
+          />
+          <InputField
+            type="password"
+            name="password"
+            placeholder="Contraseña"
+            value={credentials.password}
+            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+            required
+          />
+          <ForgotPasswordLink>
+            <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+          </ForgotPasswordLink>
+          <Button type="submit">Entrar</Button>
+        </Form>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+        
+        <RegisterPrompt>
+          ¿No tienes una cuenta? <Link to="/register">Regístrate aquí</Link>
+        </RegisterPrompt>
+      </FormCard>
     </FormContainer>
   );
 };

@@ -22,19 +22,23 @@ import {
 
 const Home = () => {
   // State management for user choices and UI visibility
-  const [userChoice, setUserChoice] = useState(null); // Tracks if user selected new/existing account
-  const [showStartButton, setShowStartButton] = useState(true); // Controls main CTA button visibility
-  const [showSuccessModal, setShowSuccessModal] = useState(false); // Manages success modal display
+  const [userChoice, setUserChoice] = useState(null);
+  const [showStartButton, setShowStartButton] = useState(true); y
+  const [showSuccessModal, setShowSuccessModal] = useState(false); 
+  const [hasShownSuccessModal, setHasShownSuccessModal] = useState(false); 
 
   // Navigation and authentication hooks
   const navigate = useNavigate();
-  const { user } = useContext(AuthContext); // Gets current user from auth context
-  const profileStatus = useIncompleteProfile(); // Custom hook to check profile completion
+  const { user } = useContext(AuthContext); 
+  const profileStatus = useIncompleteProfile(); 
 
-  // Effect to monitor user and profile status changes
+  // Effect to show success modal when profile is complete after registration
   useEffect(() => {
-    // This effect now silently monitors state changes without logging
-  }, [user, profileStatus, showSuccessModal]);
+    if (user && !profileStatus.needsBasicInfo && !hasShownSuccessModal) {
+      setShowSuccessModal(true);
+      setHasShownSuccessModal(true);
+    }
+  }, [user, profileStatus.needsBasicInfo, hasShownSuccessModal]);
 
   // Handles user choice between new/existing account
   const handleChoice = (choice) => {
@@ -47,28 +51,22 @@ const Home = () => {
     setShowStartButton(false);
   };
 
-  // Effect to show success modal when profile is complete
-  useEffect(() => {
-    if (user && !profileStatus.needsBasicInfo) {
-      setShowSuccessModal(true);
-    } else {
-      setShowSuccessModal(false);
-    }
-  }, [user, profileStatus.needsBasicInfo]);
-
-  
+  // Handles closing the success modal
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
 
   return (
     <Container>
-      {/* Shows profile completion reminder if needed */}
-      {user && profileStatus.needsBasicInfo && (
+      {/* Shows profile completion reminder if needed, but not when success modal is shown */}
+      {user && profileStatus.needsBasicInfo && !showSuccessModal && (
         <InfoReminder missingFields={profileStatus.missingFieldsCount} />
       )}
 
-      {/* Animation wrapper for success modal */}
+      {/* Animation wrapper for success modal - has priority over InfoReminder */}
       <AnimatePresence>
         {showSuccessModal && (
-          <LoginSuccessModal onClose={() => setShowSuccessModal(false)} />
+          <LoginSuccessModal onClose={handleCloseSuccessModal} />
         )}
       </AnimatePresence>
 
@@ -150,7 +148,7 @@ const Home = () => {
       {/* Survey information section */}
       <SurveyInfoSection>
         <p style={{ fontSize: '1.1rem', lineHeight: '1.6' }}>
-          Responde encuestas desde tu celular en menos de 5 minutos y gana 7 pesos por cada una.
+          Responde encuestas desde tu celular en menos de 5 minutos y gana X Euros por cada una.
         </p>
       </SurveyInfoSection>
 
@@ -158,7 +156,6 @@ const Home = () => {
       <Footer />
     </Container>
   );
-  
 };
 
 export default Home;

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import AuthContext from '../context/AuthContext';
 
+// Custom hook to fetch and manage survey data
 export const useSurvey = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export const useSurvey = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Process Imgur URL to standard format
+  // Convert Imgur URL to standard image format
   const processImgurUrl = (url) => {
     if (!url) return null;
     if (url.includes('i.imgur.com')) return url;
@@ -22,7 +23,7 @@ export const useSurvey = () => {
     return `https://i.imgur.com/${imageId}.jpg`;
   };
 
-  // Convert YouTube URL to embed format
+  // Convert YouTube URL to embed format for iframe
   const processYoutubeUrl = (url) => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -34,20 +35,33 @@ export const useSurvey = () => {
   useEffect(() => {
     const fetchSurvey = async () => {
       try {
-        if (!user) return;
+        // Check if user is authenticated before fetching
+        if (!user) {
+          return;
+        }
 
-        // Get authentication token
+        // Get authentication token from localStorage
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Authentication token not found');
 
         // Fetch survey data from API
-        const response = await fetch(`https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`, {
+        const apiUrl = `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`;
+        
+        const response = await fetch(apiUrl, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
         if (!response.ok) throw new Error('Error fetching survey');
-        
-        const surveyData = await response.json();
+
+        // Parse response data
+        let surveyData;
+        try {
+          const rawText = await response.text();
+          surveyData = JSON.parse(rawText);
+        } catch (parseError) {
+          throw new Error('Invalid JSON response from API');
+        }
+
         if (!surveyData) throw new Error('Survey not found');
 
         // Parse questions (handle both string and object formats)
@@ -55,16 +69,18 @@ export const useSurvey = () => {
           ? JSON.parse(surveyData.questions) 
           : surveyData.questions;
 
-        // Normalize question structure
+        // Normalize question structure for consistent handling
         questions = questions.map((q, index) => {
-          // Handle simple string questions
-          if (typeof q === 'string') return {
-            questionId: index + 1,
-            question: q,
-            type: 'text',
-            multipleSelections: false, // Default for text questions
-            answerLength: null
-          };
+          // Handle simple string questions (convert to object)
+          if (typeof q === 'string') {
+            return {
+              questionId: index + 1,
+              question: q,
+              type: 'text',
+              multipleSelections: false, // Text questions are single selection by default
+              answerLength: null
+            };
+          }
           
           // Handle full question objects
           const questionId = q.id || q.questionId || index + 1;
@@ -72,31 +88,38 @@ export const useSurvey = () => {
           // Convert "yes"/"no" to boolean for internal use
           const isMultiple = q.multipleSelections === "yes";
           
-          return {
+          // Create normalized question object with all required fields
+          const normalizedQuestion = {
             questionId,
             id: questionId,
             question: q.question || q.text,
             type: q.type || 'text',
             options: q.options || [],
             multipleSelections: isMultiple, // Store as boolean internally
+            selectionLimit: q.selectionLimit, // Preserve selection limit from API
             originalMultipleSelection: q.multipleSelections, // Keep original value
             imagem: q.imagem ? processImgurUrl(q.imagem) : null,
             video: q.video ? processYoutubeUrl(q.video) : null,
-            answerLength: q.answerLength ? String(q.answerLength) : null
+            answerLength: q.answerLength ? String(q.answerLength) : null,
+            required: q.required || false
           };
+
+          return normalizedQuestion;
         });
 
-        // Create final survey object
+        // Create final survey object with normalized questions
         const fixedSurvey = { 
           ...surveyData, 
           questions,
-          // Preserve original multipleSelections format in metadata
+          // Store metadata about the survey format
           _metadata: {
-            multipleSelectionsFormat: 'yes/no' // Document the expected format
+            multipleSelectionsFormat: 'yes/no', // Document the expected format
+            selectionLimitsPreserved: questions.every(q => 'selectionLimit' in q)
           }
         };
 
         setSurvey(fixedSurvey);
+        
       } catch (error) {
         setError(error.message);
       } finally {
@@ -104,7 +127,12 @@ export const useSurvey = () => {
       }
     };
 
-    if (accessToken && user) fetchSurvey();
+    // Only fetch survey if we have access token and user is authenticated
+    if (accessToken && user) {
+      fetchSurvey();
+    } else {
+      setLoading(false);
+    }
   }, [accessToken, user]);
 
   return { survey, loading, error };

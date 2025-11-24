@@ -11,16 +11,88 @@ const answerLengthRequirements = {
 export const useSurveyQuestionHandlers = (question, response, onResponseChange) => {
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
-  // Normalize selectionLimit and multipleSelections
-  const normalizedSelectionLimit =
-    question.selectionLimit !== undefined &&
-    question.selectionLimit !== null &&
-    question.selectionLimit !== ''
-      ? Number(question.selectionLimit)
-      : undefined;
+  // Robust detection of multiple selection with all possible cases
+  const getIsMultipleSelection = useCallback(() => {
+    const value = question.multipleSelections;
+    
+    if (value === 'yes' || value === true || value === 'true' || value === 'sim') {
+      return true;
+    }
+    
+    if (value === 'no' || value === false || value === 'false' || value === 'não' || value === 'nao') {
+      return false;
+    }
 
-  const isMultipleSelection =
-    question.multipleSelections === 'yes' || question.multipleSelections === true;
+    if (question.selectionLimit && question.selectionLimit > 1) {
+      return true;
+    }
+
+    return false;
+  }, [question.multipleSelections, question.selectionLimit]);
+
+  // Robust selection limit detection
+  const getEffectiveSelectionLimit = useCallback(() => {
+    const isMultipleSelection = getIsMultipleSelection();
+    
+    if (!isMultipleSelection) {
+      return 1;
+    }
+
+    if (question.selectionLimit != null && question.selectionLimit !== '') {
+      const limit = Number(question.selectionLimit);
+      if (!isNaN(limit) && limit > 0) {
+        return limit;
+      }
+    }
+
+    const textLimit = extractLimitFromQuestionText(question.question);
+    if (textLimit) {
+      return textLimit;
+    }
+
+    return null;
+  }, [question.selectionLimit, question.question, getIsMultipleSelection]);
+
+  // Extract limit from question text
+  const extractLimitFromQuestionText = useCallback((questionText) => {
+    if (!questionText) return null;
+
+    const patterns = [
+      { regex: /\(Selecione hasta (\d+)\)/i },
+      { regex: /\(selecione até (\d+)\)/i },
+      { regex: /\(até (\d+) opções\)/i },
+      { regex: /\(choose up to (\d+)\)/i },
+      { regex: /\(select up to (\d+)\)/i },
+      { regex: /\(max\.? (\d+)\)/i },
+      { regex: /\(maximum (\d+)\)/i },
+      { regex: /\(limite de (\d+)\)/i },
+      { regex: /\(máximo de (\d+)\)/i },
+      { regex: /\(até (\d+)\)/i },
+      { regex: /selecione (\d+) opções/i },
+      { regex: /choose (\d+) options/i },
+      { regex: /select (\d+) options/i },
+      { regex: /up to (\d+) options/i },
+      { regex: /máximo (\d+)/i },
+      { regex: /maximum (\d+)/i },
+      { regex: /limite (\d+)/i },
+      { regex: /até (\d+)/i }
+    ];
+
+    for (const pattern of patterns) {
+      const match = questionText.match(pattern.regex);
+      if (match && match[1]) {
+        const limit = parseInt(match[1]);
+        if (!isNaN(limit) && limit > 0) {
+          return limit;
+        }
+      }
+    }
+
+    return null;
+  }, []);
+
+  const isMultipleSelection = getIsMultipleSelection();
+  const effectiveSelectionLimit = getEffectiveSelectionLimit();
 
   // Get image dimensions for responsive rendering
   useEffect(() => {
@@ -62,8 +134,8 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
           }
 
           if (
-            normalizedSelectionLimit &&
-            currentSelections > normalizedSelectionLimit
+            effectiveSelectionLimit &&
+            currentSelections > effectiveSelectionLimit
           ) {
             return false;
           }
@@ -78,7 +150,6 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
         return true;
       }
 
-      // For text questions
       const answerStr =
         typeof answer === 'string' ? answer : JSON.stringify(answer);
       const { min, max } = getLengthConfig();
@@ -95,7 +166,7 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
       question.type,
       question.required,
       isMultipleSelection,
-      normalizedSelectionLimit,
+      effectiveSelectionLimit,
       getLengthConfig
     ]
   );
@@ -123,7 +194,7 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
       if (isMultipleSelection) {
         const currentArray = Array.isArray(response) ? response : [];
         const currentSelections = currentArray.length;
-        const selectionLimit = normalizedSelectionLimit || Infinity;
+        const selectionLimit = effectiveSelectionLimit || Infinity;
 
         if (currentArray.includes(option)) {
           newResponse = currentArray.filter((item) => item !== option);
@@ -140,7 +211,7 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
     [
       isMultipleSelection,
       response,
-      normalizedSelectionLimit,
+      effectiveSelectionLimit,
       question.questionId,
       onResponseChange
     ]
@@ -183,29 +254,28 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
     if (!isMultipleSelection) return null;
 
     const currentSelections = Array.isArray(response) ? response.length : 0;
-    const selectionLimit = normalizedSelectionLimit;
 
     return {
       current: currentSelections,
-      limit: selectionLimit,
-      hasLimit: !!selectionLimit,
-      canSelectMore: !selectionLimit || currentSelections < selectionLimit,
-      isAtLimit: !!selectionLimit && currentSelections >= selectionLimit,
-      remaining: selectionLimit ? selectionLimit - currentSelections : Infinity
+      limit: effectiveSelectionLimit,
+      hasLimit: !!effectiveSelectionLimit,
+      canSelectMore: !effectiveSelectionLimit || currentSelections < effectiveSelectionLimit,
+      isAtLimit: !!effectiveSelectionLimit && currentSelections >= effectiveSelectionLimit,
+      remaining: effectiveSelectionLimit ? effectiveSelectionLimit - currentSelections : Infinity
     };
-  }, [isMultipleSelection, normalizedSelectionLimit, response]);
+  }, [isMultipleSelection, effectiveSelectionLimit, response]);
 
   // Check if selection limit is exceeded
   const isSelectionLimitExceeded = useCallback(() => {
     if (question.type !== 'text' && isMultipleSelection) {
       const currentSelection = Array.isArray(response) ? response : [];
       return (
-        normalizedSelectionLimit &&
-        currentSelection.length > normalizedSelectionLimit
+        effectiveSelectionLimit &&
+        currentSelection.length > effectiveSelectionLimit
       );
     }
     return false;
-  }, [question.type, isMultipleSelection, normalizedSelectionLimit, response]);
+  }, [question.type, isMultipleSelection, effectiveSelectionLimit, response]);
 
   // Get current selection count
   const getSelectionCount = useCallback(() => {
@@ -222,12 +292,11 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
 
       const currentArray = Array.isArray(response) ? response : [];
       const isSelected = currentArray.includes(option);
-      const selectionLimit = normalizedSelectionLimit;
 
       if (isSelected) return true;
-      return !selectionLimit || currentArray.length < selectionLimit;
+      return !effectiveSelectionLimit || currentArray.length < effectiveSelectionLimit;
     },
-    [isMultipleSelection, normalizedSelectionLimit, response]
+    [isMultipleSelection, effectiveSelectionLimit, response]
   );
 
   return {
@@ -245,7 +314,8 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
     getSelectionLimitInfo,
     isSelectionLimitExceeded,
     getSelectionCount,
-    canSelectOption
+    canSelectOption,
+    isMultipleSelection,
+    effectiveSelectionLimit
   };
 };
-

@@ -61,16 +61,16 @@ const PasswordStrength = ({ password }) => {
       {/* List of password requirements */}
       <PasswordRequirements>
         <Requirement $valid={isLongEnough}>
-          {isLongEnough ? '✓ ' : '✗ '}At least 8 characters
+          {isLongEnough ? '✓ ' : '✗ '}Mínimo 8 caracteres
         </Requirement>
         <Requirement $valid={hasLetters}>
-          {hasLetters ? '✓ ' : '✗ '}Include letters
+          {hasLetters ? '✓ ' : '✗ '}Incluir letras
         </Requirement>
         <Requirement $valid={hasNumbers}>
-          {hasNumbers ? '✓ ' : '✗ '}Include numbers
+          {hasNumbers ? '✓ ' : '✗ '}Incluir letras
         </Requirement>
         <Requirement $valid={hasSpecialChars}>
-          {hasSpecialChars ? '✓ ' : '✗ '}Include special characters (!@#$%^&*)
+          {hasSpecialChars ? '✓ ' : '✗ '}Incluir caracteres especiales (!@#$%^&*)
         </Requirement>
       </PasswordRequirements>
     </div>

@@ -23,7 +23,7 @@ import {
 const Home = () => {
   // State management for user choices and UI visibility
   const [userChoice, setUserChoice] = useState(null);
-  const [showStartButton, setShowStartButton] = useState(true); y
+  const [showStartButton, setShowStartButton] = useState(true); 
   const [showSuccessModal, setShowSuccessModal] = useState(false); 
   const [hasShownSuccessModal, setHasShownSuccessModal] = useState(false); 
 

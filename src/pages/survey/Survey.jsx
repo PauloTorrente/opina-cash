@@ -1,192 +1,153 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Container } from '../../components/survey/Survey.styles.jsx';
+import {
+  LoadingWrapper, LoadingSpinnerLarge, LoadingText,
+  StatePageWrapper, StateCard, StateIcon, StateTitle, StateMessage, HomeButton
+} from '../../components/survey/Survey.styles.jsx';
 import { useSurvey } from '../../hooks/useSurveys.js';
 import AuthContext from '../../context/AuthContext';
 import SurveyForm from './SurveyForm';
 import SurveyAlreadyResponded from './SurveyAlreadyResponded';
 import SurveyResponseLimitReached from './SurveyResponseLimitReached';
 
-// Main survey component that handles survey loading and user verification
-const Survey = () => {
-  // Get navigation and location for URL parameters
-  const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Get user authentication context
-  const { user } = useContext(AuthContext);
-  
-  // Extract access token from URL query parameters
-  const queryParams = new URLSearchParams(location.search);
-  const accessToken = queryParams.get('accessToken');
+// ─── Verificação se o usuário já respondeu ────────────────────────────────────
+const checkAlreadyResponded = async (accessToken) => {
+  const token = localStorage.getItem('token');
+  if (!token || !accessToken) return false;
+  try {
+    // Tentamos o POST com corpo vazio — o backend retorna 400 "already responded"
+    // se o user já respondeu, antes de qualquer validação de payload.
+    const res = await fetch(
+      `https://enova-backend.onrender.com/api/surveys/respond-permissive?accessToken=${accessToken}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify([]),   // array vazio — não cria resultado, só aciona a guard
+      }
+    );
+    if (res.status === 400) {
+      const data = await res.json().catch(() => ({}));
+      const msg  = (data.message || '').toLowerCase();
+      if (msg.includes('already responded') || msg.includes('já respondeu')) return 'already';
+      if (msg.includes('response limit') || msg.includes('limit reached'))   return 'limit';
+    }
+    return false;
+  } catch {
+    return false;
+  }
+};
 
-  // State for tracking survey response status
-  const [hasResponded, setHasResponded] = useState(false);
+const Survey = () => {
+  const navigate    = useNavigate();
+  const location    = useLocation();
+  const { user }    = useContext(AuthContext);
+  const accessToken = new URLSearchParams(location.search).get('accessToken');
+
+  const [hasResponded,         setHasResponded]         = useState(false);
   const [responseLimitReached, setResponseLimitReached] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [verificationError, setVerificationError] = useState(null);
-  
-  // Fetch survey data using custom hook
+  const [isChecking,           setIsChecking]           = useState(true);
+
   const { survey, loading, error } = useSurvey(accessToken);
 
-  // Function to verify if user can participate in the survey
-  const verifySurveyParticipation = async () => {
-    try {
-      // Skip verification if user or access token is missing
-      if (!user || !accessToken) {
-        setIsVerifying(false);
-        return;
-      }
-
-      // Check if authentication token exists
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setVerificationError('Authentication token not found');
-        setIsVerifying(false);
-        return;
-      }
-
-      // Basic survey verification - check if survey exists and is active
-      try {
-        const surveyResponse = await fetch(
-          `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-
-        if (!surveyResponse.ok) {
-          throw new Error('Error loading survey');
-        }
-
-        // Survey loaded successfully, continue with verification
-        await surveyResponse.json();
-        
-      } catch (fetchError) {
-        // If basic verification fails, still allow user to try responding
-        // This handles cases where the API might have temporary issues
-      }
-
-      // Complete verification process
-      setIsVerifying(false);
-      
-    } catch (error) {
-      // If verification fails, still allow user to try responding
-      setIsVerifying(false);
-    }
-  };
-
-  // Run verification when survey, user, and access token are available
+  // Assim que o survey carregar, verifica se o usuário já respondeu
   useEffect(() => {
-    if (survey && user && accessToken) {
-      verifySurveyParticipation();
-    } else {
-      // Skip verification if required data is missing
-      setIsVerifying(false);
+    if (!survey || !user || !accessToken) {
+      setIsChecking(false);
+      return;
     }
+    let cancelled = false;
+    (async () => {
+      const result = await checkAlreadyResponded(accessToken);
+      if (cancelled) return;
+      if (result === 'already') setHasResponded(true);
+      if (result === 'limit')   setResponseLimitReached(true);
+      setIsChecking(false);
+    })();
+    return () => { cancelled = true; };
   }, [survey, user, accessToken]);
 
-  // Show loading state while survey is being loaded or verified
-  if (loading || isVerifying) {
+  // ── Estados de carregamento ────────────────────────────────────────────────
+  if (loading || isChecking) {
     return (
-      <Container>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h2>Loading survey...</h2>
-          <p>Please wait while we load the survey.</p>
-        </div>
-      </Container>
+      <LoadingWrapper>
+        <LoadingSpinnerLarge />
+        <LoadingText>Cargando encuesta…</LoadingText>
+      </LoadingWrapper>
     );
   }
 
-  // Show error state if survey failed to load
-  if (error || verificationError) {
+  if (error) {
     return (
-      <Container>
-        <div style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>
-          <h2>Error loading survey</h2>
-          <p>{error || verificationError}</p>
-          <button onClick={() => window.location.reload()}>
-            Try Again
-          </button>
-        </div>
-      </Container>
+      <StatePageWrapper>
+        <StateCard>
+          <StateIcon $bg="linear-gradient(135deg,#EF4444,#F87171)" $shadow="0 8px 24px rgba(239,68,68,0.3)">❌</StateIcon>
+          <StateTitle>Error al cargar</StateTitle>
+          <StateMessage>{error}</StateMessage>
+          <HomeButton onClick={() => window.location.reload()}>🔄 Intentar de nuevo</HomeButton>
+        </StateCard>
+      </StatePageWrapper>
     );
   }
 
-  // Show message if survey is not found
   if (!survey) {
     return (
-      <Container>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h2>Survey not found</h2>
-          <p>The survey may have expired or the link is incorrect.</p>
-        </div>
-      </Container>
+      <StatePageWrapper>
+        <StateCard>
+          <StateIcon $bg="linear-gradient(135deg,#94A3B8,#CBD5E1)" $shadow="0 8px 24px rgba(148,163,184,0.3)">🔍</StateIcon>
+          <StateTitle>Encuesta no encontrada</StateTitle>
+          <StateMessage>La encuesta puede haber expirado o el enlace es incorrecto.</StateMessage>
+          <HomeButton onClick={() => navigate('/')}>🏠 Ir al inicio</HomeButton>
+        </StateCard>
+      </StatePageWrapper>
     );
   }
 
-  // Require user authentication
   if (!user) {
     return (
-      <Container>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h2>Authentication required</h2>
-          <p>Please log in to respond to the survey.</p>
-          <button onClick={() => navigate('/login')}>
-            Log In
-          </button>
-        </div>
-      </Container>
+      <StatePageWrapper>
+        <StateCard>
+          <StateIcon $bg="linear-gradient(135deg,#5B4FE9,#7C3AED)" $shadow="0 8px 24px rgba(91,79,233,0.3)">🔐</StateIcon>
+          <StateTitle>Autenticación requerida</StateTitle>
+          <StateMessage>Debes iniciar sesión para responder esta encuesta.</StateMessage>
+          <HomeButton onClick={() => navigate('/login')}>→ Iniciar sesión</HomeButton>
+        </StateCard>
+      </StatePageWrapper>
     );
   }
 
-  // Show message if survey response limit is reached
-  if (responseLimitReached) {
-    return <SurveyResponseLimitReached survey={survey} />;
-  }
+  if (responseLimitReached) return <SurveyResponseLimitReached />;
+  if (hasResponded)         return <SurveyAlreadyResponded />;
 
-  // Show message if user has already responded
-  if (hasResponded) {
-    return <SurveyAlreadyResponded survey={survey} />;
-  }
-
-  // Check if survey has expired
-  const now = new Date();
+  const now            = new Date();
   const expirationTime = new Date(survey.expirationTime);
-  
   if (now > expirationTime) {
     return (
-      <Container>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <h2>Survey Expired</h2>
-          <p>This survey expired on {expirationTime.toLocaleDateString()}.</p>
-        </div>
-      </Container>
+      <StatePageWrapper>
+        <StateCard>
+          <StateIcon $bg="linear-gradient(135deg,#F59E0B,#FCD34D)" $shadow="0 8px 24px rgba(245,158,11,0.3)">⏰</StateIcon>
+          <StateTitle>Encuesta expirada</StateTitle>
+          <StateMessage>
+            Esta encuesta expiró el{' '}
+            {expirationTime.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}.
+          </StateMessage>
+          <HomeButton onClick={() => navigate('/')}>🏠 Ir al inicio</HomeButton>
+        </StateCard>
+      </StatePageWrapper>
     );
   }
 
-  // Render the main survey form if all checks pass
   return (
-    <SurveyForm 
+    <SurveyForm
       survey={survey}
       accessToken={accessToken}
       userId={user.userId}
-      onResponseSuccess={() => {
-        // Mark user as having responded when submission is successful
-        setHasResponded(true);
-      }}
-      onResponseError={(error) => {
-        // Handle different types of response errors
-        if (error.includes('already responded') || error.includes('já respondeu') || error.includes('ALREADY_RESPONDED')) {
+      onResponseSuccess={() => setHasResponded(true)}
+      onResponseError={(err) => {
+        const msg = typeof err === 'string' ? err : err?.message || '';
+        if (msg.includes('already responded') || msg.includes('ALREADY_RESPONDED')) {
           setHasResponded(true);
-        } else if (error.includes('response limit') || error.includes('limite')) {
+        } else if (msg.includes('response limit') || msg.includes('limit')) {
           setResponseLimitReached(true);
-        } else {
-          alert('Error sending response: ' + error);
         }
       }}
     />

@@ -1,32 +1,27 @@
 import React from 'react';
+import { CharCounterRow, CharCounter } from '../../components/survey/Survey.styles.jsx';
 
 const CharacterCounter = ({ current, max, min }) => {
-  let color = '#718096';
-  if (current > max) color = '#e53e3e';
-  else if (current > max * 0.8) color = '#dd6b20';
-  else if (current < min) color = '#e53e3e';
+  const isOver  = max !== Infinity && current > max;
+  const isWarn  = max !== Infinity && current > max * 0.8;
+  const isBelow = current < min;
 
   return (
-    <div style={{
-      textAlign: 'right',
-      fontSize: '0.8rem',
-      marginTop: '0.25rem',
-      color: color
-    }}>
-      {current} / {max === Infinity ? '∞' : max} caracteres
-      
-      {current < min && (
-        <span style={{ color: '#e53e3e', display: 'block' }}>
-          ⚠️ Mínimo requerido: {min} caracteres
-        </span>
+    <CharCounterRow>
+      {isBelow && current > 0 && (
+        <CharCounter $over style={{ marginRight: 'auto' }}>
+          ⚠️ Mínimo {min} caracteres
+        </CharCounter>
       )}
-      
-      {current > max && (
-        <span style={{ color: '#e53e3e', display: 'block' }}>
-          ⚠️ Límite excedido en {current - max} caracteres
-        </span>
+      {isOver && (
+        <CharCounter $over style={{ marginRight: 'auto' }}>
+          ⚠️ Excedido en {current - max}
+        </CharCounter>
       )}
-    </div>
+      <CharCounter $over={isOver} $warn={isWarn && !isOver}>
+        {current}{max === Infinity ? '' : ` / ${max}`}
+      </CharCounter>
+    </CharCounterRow>
   );
 };
 

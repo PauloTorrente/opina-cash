@@ -1,13 +1,60 @@
 import React from 'react';
-import { Container, Title, SubmitButton } from '../../components/survey/Survey.styles.jsx';
-import { SuccessModal } from '../../components/survey/SuccessSurvey';
+import {
+  Container, SurveyHeader, Title, SurveyDescription,
+  SubmitButton, SpinnerIcon, ModalOverlay, ModalContent,
+  ModalIcon, ModalTitle, ModalText, ModalButton,
+  LoadingWrapper, LoadingSpinnerLarge, LoadingText
+} from '../../components/survey/Survey.styles.jsx';
 import SurveyQuestion from './SurveyQuestion';
 import SurveyWarning from './SurveyWarning';
 import { useSurveyForm } from '../../hooks/useSurveyForm';
+import styled, { keyframes } from 'styled-components';
 
-// Main survey form component that displays and handles survey responses
-const SurveyForm = ({ survey, accessToken, onModalClose }) => {
-  // Get form state and handlers from custom hook
+// ─── Banner "Nunca" — encerra a enquete ───────────────────────────────────────
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+`;
+
+const NeverBanner = styled.div`
+  background: linear-gradient(135deg, #FFF7ED, #FEF3C7);
+  border: 1.5px solid #FCD34D;
+  border-radius: 16px;
+  padding: 20px 20px;
+  margin: 8px 0 16px;
+  text-align: center;
+  animation: ${fadeUp} 0.35s ease-out;
+
+  .icon { font-size: 2rem; margin-bottom: 8px; display: block; }
+  .title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #92400E;
+    margin-bottom: 6px;
+  }
+  .sub {
+    font-size: 0.88rem;
+    color: #78350F;
+    line-height: 1.5;
+  }
+`;
+
+// ─── Modal de éxito ───────────────────────────────────────────────────────────
+const SuccessModal = ({ onClose }) => (
+  <ModalOverlay>
+    <ModalContent>
+      <ModalIcon>🎉</ModalIcon>
+      <ModalTitle>¡Encuesta completada!</ModalTitle>
+      <ModalText>
+        Gracias por participar. Tu recompensa ya fue procesada y pronto se reflejará en tu cuenta.
+      </ModalText>
+      <ModalButton onClick={onClose}>Volver al inicio</ModalButton>
+    </ModalContent>
+  </ModalOverlay>
+);
+
+// ─── Componente principal ─────────────────────────────────────────────────────
+const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onResponseError }) => {
   const {
     responses,
     showSuccessModal,
@@ -16,82 +63,71 @@ const SurveyForm = ({ survey, accessToken, onModalClose }) => {
     formComplete,
     allResponsesValid,
     normalizedQuestions,
+    isNeverBlocked,
     handleResponseChange,
     handleTermsChange,
     handleSubmit,
-    closeModal
-  } = useSurveyForm({ survey, accessToken });
+    closeModal,
+  } = useSurveyForm({ survey, accessToken, onResponseSuccess, onResponseError });
+
+  const getButtonLabel = () => {
+    if (isSubmitting) return null;
+    if (!allResponsesValid) return 'Completa todas las respuestas';
+    if (!termsAccepted)     return 'Acepta los términos para continuar';
+    if (isNeverBlocked)     return 'Enviar y finalizar';
+    return 'Enviar respuestas';
+  };
 
   return (
     <>
       <Container>
-        {/* Survey title */}
-        <Title>{survey.title}</Title>
-        
-        {/* Survey description - shows if available */}
-        {survey.description && (
-          <div style={{
-            marginBottom: '20px',
-            padding: '15px',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '8px',
-            borderLeft: '4px solid #4c6ef5'
-          }}>
-            <p style={{ margin: 0, color: '#495057', fontSize: '1.05rem' }}>
-              {survey.description}
-            </p>
-          </div>
-        )}
+        <SurveyHeader>
+          <Title>{survey.title}</Title>
+          {survey.description && <SurveyDescription>{survey.description}</SurveyDescription>}
+        </SurveyHeader>
 
-        {/* Main survey form */}
         <form onSubmit={handleSubmit}>
-          {/* Render each survey question */}
-          {normalizedQuestions.map((question, index) => {
-            // Create unique key for each question to help React with rendering
-            const uniqueKey = `q-${question.questionId}-${index}`;
-            
-            return (
-              <div key={uniqueKey} style={{
-                position: 'relative',
-                marginBottom: '10px'
-              }}>
-                {/* Individual question component */}
-                <SurveyQuestion
-                  question={question}
-                  selectionLimit={question.selectionLimit}
-                  response={responses[question.questionId]}
-                  onResponseChange={handleResponseChange}
-                />
-              </div>
-            );
-          })}
+          {normalizedQuestions.map((question, index) => (
+            <SurveyQuestion
+              key={`q-${question.questionId}-${index}`}
+              question={question}
+              selectionLimit={question.selectionLimit}
+              response={responses[question.questionId]}
+              onResponseChange={handleResponseChange}
+              // PROBLEMA 7: pasar respuestas para la lógica de condicional
+              allResponses={responses}
+              questionIndex={index}
+              allQuestions={normalizedQuestions}
+            />
+          ))}
 
-          {/* Terms and conditions warning */}
+          {/* PROBLEMAS 1 & 3: banner cuando seleccionó "Nunca" */}
+          {isNeverBlocked && (
+            <NeverBanner>
+              <span className="icon">🚫</span>
+              <div className="title">Encuesta finalizada anticipadamente</div>
+              <div className="sub">
+                Como no utilizas este servicio, no es necesario que continúes respondiendo.
+                Puedes enviar tus respuestas con el botón de abajo.
+              </div>
+            </NeverBanner>
+          )}
+
           <SurveyWarning checked={termsAccepted} onChange={handleTermsChange} />
 
-          {/* Submit button with dynamic states */}
-          <SubmitButton
-            type="submit"
-            disabled={!formComplete || isSubmitting}
-            style={{
-              opacity: formComplete ? 1 : 0.7,
-              cursor: formComplete ? 'pointer' : 'not-allowed',
-              marginTop: '20px'
-            }}
-          >
-            <span role="img" aria-label="send">📨</span>
-            {isSubmitting ? 'Enviando...' :
-              formComplete ? 'Enviar Respuestas' :
-              !allResponsesValid ? 'Complete todas las respuestas correctamente' : 'Acepte los términos para continuar'}
+          <SubmitButton type="submit" disabled={!formComplete || isSubmitting}>
+            {isSubmitting
+              ? <><SpinnerIcon /> Enviando...</>
+              : <>{formComplete ? '✅' : '⏳'} {getButtonLabel()}</>
+            }
           </SubmitButton>
         </form>
       </Container>
 
-      {/* Success modal shown after form submission */}
       {showSuccessModal && (
         <SuccessModal onClose={() => {
           closeModal();
-          onModalClose();
+          if (onModalClose) onModalClose();
         }} />
       )}
     </>

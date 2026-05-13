@@ -1,11 +1,12 @@
 import React from 'react';
 import {
   InputFieldStyled, OptionsContainer,
-  RadioInput, RadioLabel, StyledCheckbox, OptionalItem, CheckboxLabel2
+  RadioInput, StyledCheckbox, OptionalItem,
+  OptionLabel, DisabledHint, OtherInputWrapper,
+  LimitRow, LimitTrack, LimitFill, LimitCount, LimitWarning
 } from '../../components/survey/Survey.styles.jsx';
 import CharacterCounter from './CharacterCounter';
 
-// Component for rendering different input types based on question configuration
 const QuestionInputRenderer = ({
   question,
   response,
@@ -15,13 +16,33 @@ const QuestionInputRenderer = ({
   handleOptionChange,
   getLengthConfig,
   isResponseValid,
-  getCorrectedResponse
+  getCorrectedResponse,
+  handleOtherTextChange,
+  otherText,
+  correctedResponse,
+  effectiveSelectionLimit,
+  hasOtherOption,
+  otherOptionText,
+  canSelectMoreOptions
 }) => {
-  // Render text input for open-ended questions
+  const isMultipleSelection = question.multipleSelections === 'yes' || question.multipleSelections === true;
+
+  const isOptionSelected = (option) => {
+    if (hasOtherOption) {
+      if (isMultipleSelection) return Array.isArray(correctedResponse) && correctedResponse.includes(option);
+      return correctedResponse === option;
+    }
+    return isMultipleSelection
+      ? Array.isArray(correctedResponse) && correctedResponse.includes(option)
+      : correctedResponse === option;
+  };
+
+  // ── Text input ──────────────────────────────────────────────────────────────
   const renderTextInput = () => {
     const lengthConfig = getLengthConfig();
     const isValid = isResponseValid(response);
-    
+    const hasContent = response && response.length > 0;
+
     return (
       <div>
         <InputFieldStyled
@@ -30,10 +51,7 @@ const QuestionInputRenderer = ({
           value={response || ''}
           onChange={handleTextChange}
           required={question.required}
-          style={{
-            borderColor: !response ? '' : isValid ? '#28a745' : '#dc3545'
-          }}
-          aria-invalid={!isValid}
+          $invalid={hasContent ? !isValid : undefined}
         />
         <CharacterCounter
           current={response?.length || 0}
@@ -44,142 +62,131 @@ const QuestionInputRenderer = ({
     );
   };
 
-  // Render multiple choice options with limit handling
+  // ── Multiple choice ─────────────────────────────────────────────────────────
   const renderMultipleChoice = () => {
-    const correctedResponse = getCorrectedResponse();
-    const isMultipleSelection = question.multipleSelections === 'yes' || question.multipleSelections === true;
-    
+    const pct = limitInfo.hasLimit && limitInfo.max > 0
+      ? (limitInfo.current / limitInfo.max) * 100
+      : 0;
+
     return (
       <div>
-        {/* Limit progress bar - just the bar */}
+        {/* Selection progress bar */}
         {isMultipleSelection && limitInfo.hasLimit && (
-          <div style={{
-            marginBottom: '15px'
-          }}>
-            <div style={{
-              width: '100%',
-              height: '6px',
-              backgroundColor: '#e9ecef',
-              borderRadius: '3px',
-              overflow: 'hidden'
-            }}>
-              <div
-                style={{
-                  width: `${Math.min(100, (limitInfo.current / limitInfo.max) * 100)}%`,
-                  height: '100%',
-                  backgroundColor: limitInfo.current >= limitInfo.max ? '#dc3545' : 
-                                 limitInfo.current > limitInfo.max * 0.8 ? '#fd7e14' : '#28a745',
-                  transition: 'all 0.3s ease',
-                  borderRadius: '3px'
-                }}
-              />
-            </div>
-            {/* Simple counter below the bar */}
-            {limitInfo.current > 0 && (
-              <div style={{
-                fontSize: '0.8rem',
-                color: '#6c757d',
-                textAlign: 'right',
-                marginTop: '4px'
-              }}>
-                {limitInfo.current}/{limitInfo.max} seleccionadas
-              </div>
-            )}
-          </div>
+          <LimitRow>
+            <LimitTrack>
+              <LimitFill $pct={pct} />
+            </LimitTrack>
+            <LimitCount $atLimit={limitInfo.isAtLimit}>
+              {limitInfo.current}/{limitInfo.max}
+            </LimitCount>
+          </LimitRow>
         )}
 
-        {/* Limit reached message */}
-        {limitInfo.hasLimit && limitInfo.current >= limitInfo.max && (
-          <div style={{
-            padding: '10px',
-            backgroundColor: '#f8d7da',
-            border: '1px solid #f5c6cb',
-            borderRadius: '4px',
-            color: '#721c24',
-            fontSize: '14px',
-            marginBottom: '15px'
-          }}>
-            ⚠️ Límite máximo alcanzado. Desmarca algunas opciones para seleccionar otras.
-          </div>
+        {/* Limit reached warning */}
+        {limitInfo.hasLimit && limitInfo.isAtLimit && (
+          <LimitWarning>
+            ⛔ Límite alcanzado — desmarca alguna opción para cambiar.
+          </LimitWarning>
         )}
 
         <OptionsContainer>
           {question.options.map((option, index) => {
-            const isSelected = isMultipleSelection
-              ? Array.isArray(correctedResponse) && correctedResponse.includes(option)
-              : correctedResponse === option;
-
-            const canSelect = !isMultipleSelection || 
-              !limitInfo.hasLimit || 
-              limitInfo.current < limitInfo.max || 
-              isSelected;
+            const isSelected = isOptionSelected(option);
+            const canSelect  = !isMultipleSelection
+              || !limitInfo.hasLimit
+              || limitInfo.current < limitInfo.max
+              || isSelected;
 
             return (
-              <OptionalItem 
-                key={index} 
+              <OptionalItem
+                key={index}
+                $selected={isSelected}
                 $disabled={!canSelect}
-                $isAtLimit={limitInfo.hasLimit && limitInfo.current >= limitInfo.max && !isSelected}
+                onClick={() => canSelect && (isMultipleSelection
+                  ? handleOptionChangeWithLimit(option)
+                  : handleOptionChange(option))}
               >
                 {isMultipleSelection ? (
-                  <>
-                    <StyledCheckbox
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => handleOptionChangeWithLimit(option)}
-                      aria-label={`Seleccionar ${option}`}
-                      disabled={!canSelect}
-                      style={{
-                        cursor: canSelect ? 'pointer' : 'not-allowed',
-                        opacity: canSelect ? 1 : 0.5
-                      }}
-                    />
-                    <CheckboxLabel2 
-                      selected={isSelected} 
-                      $disabled={!canSelect}
-                    >
-                      {option}
-                      {!canSelect && !isSelected && limitInfo.hasLimit && (
-                        <span style={{ 
-                          fontSize: '0.8rem', 
-                          color: '#dc3545', 
-                          marginLeft: '5px',
-                          fontStyle: 'italic'
-                        }}>
-                          (límite alcanzado)
-                        </span>
-                      )}
-                    </CheckboxLabel2>
-                  </>
+                  <StyledCheckbox
+                    type="checkbox"
+                    checked={isSelected}
+                    readOnly
+                    disabled={!canSelect}
+                  />
                 ) : (
-                  <>
-                    <RadioInput
-                      type="radio"
-                      name={`question-${question.questionId}`}
-                      checked={isSelected}
-                      onChange={() => handleOptionChange(option)}
-                      aria-label={`Seleccionar ${option}`}
-                    />
-                    <RadioLabel selected={isSelected}>
-                      {option}
-                    </RadioLabel>
-                  </>
+                  <RadioInput
+                    type="radio"
+                    name={`question-${question.questionId}`}
+                    checked={isSelected}
+                    readOnly
+                  />
                 )}
+                <OptionLabel $selected={isSelected} $disabled={!canSelect}>
+                  {option}
+                  {!canSelect && !isSelected && (
+                    <DisabledHint> (límite alcanzado)</DisabledHint>
+                  )}
+                </OptionLabel>
               </OptionalItem>
             );
           })}
+
+          {/* Other option */}
+          {hasOtherOption && (() => {
+            const otherSelected = isMultipleSelection
+              ? Array.isArray(correctedResponse) && correctedResponse.includes('other')
+              : correctedResponse === 'other';
+            const canSelectOther = !isMultipleSelection
+              || canSelectMoreOptions(correctedResponse, effectiveSelectionLimit, 'other');
+
+            return (
+              <>
+                <OptionalItem
+                  key="other"
+                  $selected={otherSelected}
+                  $disabled={!canSelectOther && !otherSelected}
+                  onClick={() => (canSelectOther || otherSelected) && handleOptionChangeWithLimit('other')}
+                >
+                  {isMultipleSelection ? (
+                    <StyledCheckbox type="checkbox" checked={otherSelected} readOnly disabled={!canSelectOther && !otherSelected} />
+                  ) : (
+                    <RadioInput type="radio" name={`question-${question.questionId}`} checked={otherSelected} readOnly />
+                  )}
+                  <OptionLabel $selected={otherSelected}>
+                    {otherOptionText}
+                  </OptionLabel>
+                </OptionalItem>
+
+                {otherSelected && (
+                  <OtherInputWrapper>
+                    <InputFieldStyled
+                      type="text"
+                      placeholder="Especifique..."
+                      value={otherText}
+                      onChange={(e) => handleOtherTextChange(e.target.value)}
+                      autoFocus
+                    />
+                    {question.answerLength && (
+                      <CharacterCounter
+                        current={otherText.length}
+                        max={getLengthConfig().max}
+                        min={getLengthConfig().min}
+                      />
+                    )}
+                  </OtherInputWrapper>
+                )}
+              </>
+            );
+          })()}
         </OptionsContainer>
       </div>
     );
   };
 
-  // Main render function that switches between input types
   switch (question.type) {
-    case 'text':
-      return renderTextInput();
-    case 'multiple':
-      return renderMultipleChoice();
-    default:
-      return null;
+    case 'text':     return renderTextInput();
+    case 'multiple': return renderMultipleChoice();
+    default:         return null;
   }
 };
 

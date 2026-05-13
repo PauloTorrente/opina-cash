@@ -1,15 +1,15 @@
 import React from 'react';
-import { ModalOverlay,  ModalContent, ModalTitle, ModalText } from './Survey.styles';
-import Button from '../common/Button/Button';
+import { ModalOverlay, ModalContent, ModalIcon, ModalTitle, ModalText, ModalButton } from './Survey.styles';
 
 export const SuccessModal = ({ onClose }) => (
   <ModalOverlay>
     <ModalContent>
-      <ModalTitle>¡Encuesta completada!</ModalTitle>
+      <ModalIcon>🎉</ModalIcon>
+      <ModalTitle>Pesquisa concluída!</ModalTitle>
       <ModalText>
-        Gracias por participar. Ya se va depositar en tu cuenta X Euros.
+        Obrigado por participar. Sua recompensa já foi processada e em breve aparecerá na sua conta.
       </ModalText>
-      <Button onClick={onClose}>Volver al inicio</Button>
+      <ModalButton onClick={onClose}>Voltar ao início</ModalButton>
     </ModalContent>
   </ModalOverlay>
 );

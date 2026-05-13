@@ -1,30 +1,36 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Container, 
-  Title, 
-  Message
+import {
+  StatePageWrapper, StateCard, StateIcon,
+  StateTitle, StateMessage, CountdownBadge, HomeButton
 } from '../../components/survey/Survey.styles.jsx';
 
 const SurveyResponseLimitReached = () => {
   const navigate = useNavigate();
-  
+  const [seconds, setSeconds] = useState(8);
+
   useEffect(() => {
-    const timer = setTimeout(() => navigate('/'), 10000);
-    return () => clearTimeout(timer);
-  }, [navigate]);
+    if (seconds <= 0) { navigate('/'); return; }
+    const t = setTimeout(() => setSeconds(s => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [seconds, navigate]);
 
   return (
-    <Container>
-      <Title>¡Encuesta Completa!</Title>
-      <Message>
-        Esta encuesta ha alcanzado el número máximo de respuestas permitidas.
-        Serás redirigido automáticamente en 10 segundos...
-      </Message>
-      <div style={{ marginTop: '20px', fontSize: '1.5rem' }}>
-        ⏱️ Redireccionando...
-      </div>
-    </Container>
+    <StatePageWrapper>
+      <StateCard>
+        <StateIcon
+          $bg="linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%)"
+          $shadow="0 8px 24px rgba(124,58,237,0.3)"
+        >🏆</StateIcon>
+        <StateTitle>¡Encuesta completa!</StateTitle>
+        <StateMessage>
+          Esta encuesta ya alcanzó el número máximo de participantes. ¡Mantente atento a nuevas encuestas!
+        </StateMessage>
+        <CountdownBadge>⏱ Redirigiendo en {seconds}s…</CountdownBadge>
+        <br />
+        <HomeButton onClick={() => navigate('/')}>🏠 Ir al inicio ahora</HomeButton>
+      </StateCard>
+    </StatePageWrapper>
   );
 };
 

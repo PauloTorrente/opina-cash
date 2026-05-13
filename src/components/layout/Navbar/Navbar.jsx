@@ -94,17 +94,11 @@ const Navbar = () => {
               variants={sidebarVariants}
               transition={{ duration: 0.4, ease: 'easeOut' }}
             >
-              <CloseButton onClick={() => setIsOpen(false)} aria-label="Fechar menu">&times;</CloseButton>
+              <CloseButton onClick={() => setIsOpen(false)} aria-label="Cerrar menú">&times;</CloseButton>
               <NavLink as={Link} to="/" onClick={() => setIsOpen(false)}>Inicio</NavLink>
               {user ? (
                 <>
-                  {user.role.toLowerCase() === 'admin' && (
-                    <>
-                      <NavLink as={Link} to="/dashboard" onClick={() => setIsOpen(false)}>Dashboard</NavLink>
-                      <NavLink as={Link} to="/results" onClick={() => setIsOpen(false)}>Resultados</NavLink>
-                      <NavLink as={Link} to="/create-survey" onClick={() => setIsOpen(false)}>Crear Encuesta</NavLink>
-                    </>
-                  )}
+                  <NavLink as={Link} to="/profile" onClick={() => setIsOpen(false)}>Mi perfil</NavLink>
                   <LogoutButton onClick={() => { handleLogout(); setIsOpen(false); }}>
                     Cerrar sesión
                   </LogoutButton>

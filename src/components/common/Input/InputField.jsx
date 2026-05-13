@@ -1,16 +1,37 @@
 import styled from 'styled-components';
 
-// Styled input component that accepts props for customization
-const Input = styled.input`
-  width: 100%; // Input takes up the full width of its container
-  padding: 0.5rem; // Padding inside the input for better spacing
-  margin: 0.5rem 0; // Margin above and below the input to space it out
-  border: 1px solid ${(props) => (props.$error ? '#f00' : '#6c63ff')}; 
-  /* Conditional border color:
-     - If the $error prop is true, the border color will be red (#f00)
-     - Otherwise, it will be purple (#6c63ff) */
-  border-radius: 8px; // Rounded corners for the input
-  font-size: 1rem; // Font size for the input text
+const InputField = styled.input`
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 16px;
+  margin: 0;
+  border: 1.5px solid ${({ $error }) => $error ? '#EF4444' : '#D1D5DB'};
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.5;
+  background: #F9FAFB;
+  color: #111827;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+
+  &:focus {
+    outline: none;
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+    background: #fff;
+  }
+
+  &::placeholder {
+    color: #9CA3AF;
+  }
+
+  /* Evitar zoom no iOS */
+  @media (max-width: 480px) {
+    font-size: 16px;
+  }
 `;
 
-export default Input; // Exporting the Input component for use in other parts of the app
+export default InputField;

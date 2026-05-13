@@ -1,362 +1,271 @@
 import { useState, useMemo } from 'react';
 
-// CRITICAL FIX: Function to fix double JSON serialization
-const fixDoubleSerializedQuestions = (questions) => {
+// ─── Desserialização segura ───────────────────────────────────────────────────
+const parseQuestions = (questions) => {
   if (!questions) return [];
-  
-  let rawQuestions = questions;
-  
-  // FIX: If it's a string, parse to fix double serialization
-  if (typeof rawQuestions === 'string') {
-    try {
-      // First parse
-      rawQuestions = JSON.parse(rawQuestions);
-      
-      // ⚠️ IF STILL STRING = DOUBLE SERIALIZATION!
-      if (typeof rawQuestions === 'string') {
-        // Remove external quotes if they exist (case: "\"[...]\"")
-        if (rawQuestions.startsWith('"[') && rawQuestions.endsWith(']"')) {
-          rawQuestions = rawQuestions.slice(1, -1);
-        }
-        
-        // Second parse to get the real array
-        rawQuestions = JSON.parse(rawQuestions);
-      }
-    } catch (error) {
-      console.error('Error fixing double serialization:', error);
-      return [];
-    }
-  }
-  
-  return Array.isArray(rawQuestions) ? rawQuestions : [];
+  if (Array.isArray(questions)) return questions;
+  try {
+    let parsed = typeof questions === 'string' ? JSON.parse(questions) : questions;
+    if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
 };
 
-// INTELLIGENT AUTOMATIC DETECTION SYSTEM
-const detectAndAdaptSelectionLimits = (questions) => {
-  if (!questions || !Array.isArray(questions)) return questions;
-  
-  // COMPLETE API PATTERN ANALYSIS
-  let apiPattern = {
-    totalQuestions: questions.length,
-    multipleChoiceQuestions: 0,
-    questionsWithLimits: 0,
-    limitValues: [],
-    averageLimit: 0,
-    maxLimit: 0,
-    minLimit: Infinity,
-    // NEW: Detection of EXPLICIT API values
-    explicitLimits: []
-  };
-  
-  // First pass: ANALYZE API pattern
-  questions.forEach((question, index) => {
-    const isMultiple = question.multipleSelections === 'yes' || question.multipleSelections === true;
-    
+// ─── Normalização ─────────────────────────────────────────────────────────────
+const normalizeQuestions = (questions) => {
+  return questions.map((q) => {
+    const isMultiple = q.multipleSelections === 'yes' || q.multipleSelections === true;
+    let selectionLimit = null;
+    if (isMultiple && q.selectionLimit != null && q.selectionLimit !== '') {
+      const n = Number(q.selectionLimit);
+      if (!isNaN(n) && n > 0) selectionLimit = Math.min(n, q.options?.length ?? n);
+    }
+    return { ...q, selectionLimit };
+  });
+};
+
+// ─── Estado inicial ───────────────────────────────────────────────────────────
+const buildInitialResponses = (questions) => {
+  const init = {};
+  questions.forEach((q) => {
+    const isMultiple = q.multipleSelections === 'yes' || q.multipleSelections === true;
+    if (q.type === 'multiple' && q.otherOption) {
+      init[q.questionId] = isMultiple
+        ? { selectedOptions: [], otherText: '' }
+        : { selectedOption: null, otherText: '' };
+    } else if (q.type === 'multiple' && isMultiple) {
+      init[q.questionId] = [];
+    } else {
+      init[q.questionId] = '';
+    }
+  });
+  return init;
+};
+
+// ─── Limites de texto ─────────────────────────────────────────────────────────
+const TEXT_LIMITS = {
+  short:        { min: 1,  max: 100 },
+  medium:       { min: 10, max: 300 },
+  long:         { min: 50, max: 1000 },
+  unrestricted: { min: 0,  max: Infinity },
+};
+const getLengthConfig = (answerLength) =>
+  TEXT_LIMITS[(answerLength || 'unrestricted').toLowerCase().trim()] ?? TEXT_LIMITS.unrestricted;
+
+// ─── Detectar "Nunca" selecionado ─────────────────────────────────────────────
+// Retorna true se a resposta é a opção "Nunca" (encerra a enquete)
+const isNeverSelected = (q, answer) => {
+  if (q.type !== 'multiple') return false;
+  const isMultiple = q.multipleSelections === 'yes' || q.multipleSelections === true;
+  if (isMultiple) return false;
+  const selected = q.otherOption ? (answer?.selectedOption ?? null) : answer;
+  return typeof selected === 'string' && selected.trim().toLowerCase() === 'nunca';
+};
+
+// ─── Detectar pergunta condicional ("Si seleccionaste Otro...") ──────────────
+// Detecta se a pergunta só deve aparecer quando a anterior teve "Otro"
+const isConditionalOnOtro = (q) => {
+  const text = (q.question || '').toLowerCase();
+  return (
+    text.includes("si seleccionaste 'otro'") ||
+    text.includes('si seleccionaste "otro"') ||
+    text.includes('si seleccionaste otro') ||
+    text.includes('si respondiste otro') ||
+    text.includes('si elegiste otro') ||
+    text.includes('si marcaste otro') ||
+    (/si (seleccionaste|respondiste|elegiste|marcaste)/.test(text) && text.includes('otro'))
+  );
+};
+
+// ─── Verificar se a pergunta anterior tem "Otro" selecionado ──────────────────
+const prevHasOtroSelected = (questions, currentIndex, responses) => {
+  if (currentIndex === 0) return false;
+  const prev = questions[currentIndex - 1];
+  if (!prev) return false;
+  const ans  = responses[prev.questionId];
+  const isMultiple = prev.multipleSelections === 'yes' || prev.multipleSelections === true;
+
+  // Pergunta com otherOption estruturado
+  if (prev.otherOption) {
+    if (isMultiple) return (ans?.selectedOptions ?? []).includes('other');
+    return ans?.selectedOption === 'other';
+  }
+  // Opção "Otro" explícita nas options
+  const selected = isMultiple
+    ? (Array.isArray(ans) ? ans : [])
+    : (ans ? [ans] : []);
+  return selected.some(s => typeof s === 'string' && s.toLowerCase() === 'otro');
+};
+
+// ─── Validação de uma resposta ────────────────────────────────────────────────
+const isQuestionValid = (q, answer, index, allQuestions, responses) => {
+  const isMultiple = q.multipleSelections === 'yes' || q.multipleSelections === true;
+  const required   = q.required === true || q.required === 'yes';
+
+  // PROBLEMA 7: pergunta condicional — só valida se anterior teve "Otro"
+  if (isConditionalOnOtro(q)) {
+    if (!prevHasOtroSelected(allQuestions, index, responses)) return true; // oculta → válida
+    // Está visível (anterior = Otro): texto obrigatório
+    const text = (answer || '').trim();
+    return text.length > 0;
+  }
+
+  if (q.type === 'text') {
+    const text = (answer || '').trim();
+    if (!required) { if (text.length === 0) return true; }
+    else           { if (text.length === 0) return false; }
+    const { min, max } = getLengthConfig(q.answerLength);
+    return text.length >= min && text.length <= max;
+  }
+
+  if (q.otherOption) {
     if (isMultiple) {
-      apiPattern.multipleChoiceQuestions++;
-      
-      // CRITICAL FIX: Detect if API sent selectionLimit
-      const hasExplicitLimit = question.selectionLimit != null && question.selectionLimit !== '';
-      
-      if (hasExplicitLimit) {
-        const limit = Number(question.selectionLimit);
-        if (!isNaN(limit) && limit > 0) {
-          apiPattern.questionsWithLimits++;
-          apiPattern.limitValues.push(limit);
-          apiPattern.explicitLimits.push({
-            questionId: question.questionId,
-            limit: limit,
-            optionsCount: question.options?.length || 0
-          });
-          apiPattern.maxLimit = Math.max(apiPattern.maxLimit, limit);
-          apiPattern.minLimit = Math.min(apiPattern.minLimit, limit);
-        }
-      }
+      const selected = answer?.selectedOptions ?? [];
+      if (required && selected.length === 0) return false;
+      if (selected.includes('other') && !(answer?.otherText?.trim())) return false;
+      if (q.selectionLimit && selected.length > q.selectionLimit) return false;
+    } else {
+      const sel = answer?.selectedOption ?? null;
+      if (required && !sel) return false;
+      if (sel === 'other' && !(answer?.otherText?.trim())) return false;
     }
-  });
-  
-  // Calculate average limits
-  if (apiPattern.limitValues.length > 0) {
-    apiPattern.averageLimit = apiPattern.limitValues.reduce((a, b) => a + b, 0) / apiPattern.limitValues.length;
+    return true;
   }
-  
-  // SECOND PASS: APPLY INTELLIGENT STRATEGY
-  return questions.map((question, index) => {
-    const isMultiple = question.multipleSelections === 'yes' || question.multipleSelections === true;
-    const optionsCount = question.options?.length || 0;
 
-    // CRITICAL FIX: IF API ALREADY SENT LIMIT → USE THAT EXACT VALUE
-    if (isMultiple && question.selectionLimit != null && question.selectionLimit !== '') {
-      const apiLimit = Number(question.selectionLimit);
-      
-      if (!isNaN(apiLimit) && apiLimit > 0) {
-        return {
-          ...question,
-          selectionLimit: apiLimit, // ← USE EXACT API VALUE
-          _limitSource: 'api_direct',
-          _adaptiveStrategy: 'preserve_exact_api_value',
-          _apiValue: apiLimit // Mark exact API value
-        };
-      }
-    }
-    
-    // STRATEGY 2: IF MULTIPLE BUT WITHOUT LIMIT → USE INTELLIGENT PATTERN
-    if (isMultiple && (question.selectionLimit == null || question.selectionLimit === '')) {
-      let adaptiveLimit;
-      
-      // INTELLIGENT LOGIC BASED ON API PATTERN
-      if (apiPattern.questionsWithLimits > 0) {
-        // If other questions have limits, follow the pattern
-        const suggestedByPattern = Math.min(optionsCount, Math.round(apiPattern.averageLimit));
-        adaptiveLimit = suggestedByPattern;
-      } else {
-        // If no question has limits, use conservative strategy
-        adaptiveLimit = Math.min(optionsCount, Math.max(2, Math.floor(optionsCount * 0.7)));
-      }
-      
-      return {
-        ...question,
-        selectionLimit: adaptiveLimit,
-        _limitSource: 'adaptive_intelligence',
-        _adaptiveStrategy: apiPattern.questionsWithLimits > 0 ? 'follow_api_pattern' : 'conservative_70_percent'
-      };
-    }
-    
-    // STRATEGY 3: NOT MULTIPLE → NO LIMIT
-    return {
-      ...question,
-      selectionLimit: null,
-      _limitSource: 'not_multiple_choice',
-      _adaptiveStrategy: 'no_limit_needed'
-    };
-  });
+  if (isMultiple) {
+    const arr = Array.isArray(answer) ? answer : [];
+    if (required && arr.length === 0) return false;
+    if (q.selectionLimit && arr.length > q.selectionLimit) return false;
+    return true;
+  }
+
+  if (required) return answer !== '' && answer !== null && answer !== undefined;
+  return true;
 };
 
-// COMPLETE AUTO-ADAPTIVE SYSTEM
-const normalizeSurveyQuestions = (questions) => {
-  if (!questions || !Array.isArray(questions)) return [];
-  
-  const adaptedQuestions = detectAndAdaptSelectionLimits(questions);
-  
-  // FINAL PROCESSING WITH GUARANTEES
-  return adaptedQuestions.map((question, index) => {
-    // FINAL GUARANTEE: If limit > options, adjust to maximum possible
-    if (question.selectionLimit != null && 
-        question.options && 
-        question.selectionLimit > question.options.length) {
-      
-      return {
-        ...question,
-        selectionLimit: question.options.length,
-        _adjusted: true,
-        _originalLimit: question.selectionLimit
-      };
-    }
-
-    return question;
-  });
-};
-
-export const useSurveyForm = ({ survey, accessToken }) => {
-  // AUTO-ADAPTIVE SYSTEM - DETECTS AND ADAPTS TO ANY SURVEY
+// ─── Hook principal ───────────────────────────────────────────────────────────
+export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onResponseError }) => {
   const normalizedQuestions = useMemo(() => {
-    if (!survey?.questions) {
-      return [];
-    }
-    
-    // SERIALIZATION CORRECTION
-    const deserializedQuestions = fixDoubleSerializedQuestions(survey.questions);
-    
-    // APPLY CORRECTED INTELLIGENT SYSTEM
-    const normalized = normalizeSurveyQuestions(deserializedQuestions);
-    
-    return normalized;
+    if (!survey?.questions) return [];
+    return normalizeQuestions(parseQuestions(survey.questions));
   }, [survey]);
 
-  // Initialize form state with normalized questions
-  const [responses, setResponses] = useState(() => {
-    const initialResponses = {};
-    normalizedQuestions.forEach(q => {
-      initialResponses[q.questionId] = q.multipleSelections ? [] : '';
-    });
-    return initialResponses;
-  });
+  const [responses,        setResponses]        = useState(() => buildInitialResponses(normalizedQuestions));
+  const [showSuccessModal, setShowSuccessModal]  = useState(false);
+  const [termsAccepted,    setTermsAccepted]    = useState(false);
+  const [isSubmitting,     setIsSubmitting]     = useState(false);
+  // PROBLEMA 1 & 3: índice onde "Nunca" foi selecionado (-1 = sem bloqueio)
+  const [neverBlockedAt,   setNeverBlockedAt]   = useState(-1);
 
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Perguntas visíveis: até o ponto do bloqueio por Nunca (inclusive)
+  const visibleQuestions = useMemo(() => {
+    if (neverBlockedAt === -1) return normalizedQuestions;
+    return normalizedQuestions.slice(0, neverBlockedAt + 1);
+  }, [normalizedQuestions, neverBlockedAt]);
 
-  // Handle response changes WITH REAL-TIME LIMIT VALIDATION
   const handleResponseChange = (questionId, answer) => {
-    const question = normalizedQuestions.find(q => q.questionId === questionId);
-    if (!question) return;
-    
-    const isMultiple = question.multipleSelections;
-    
-    // CRITICAL VALIDATION: Prevents exceeding selectionLimit in real time
-    if (isMultiple && question.selectionLimit && Array.isArray(answer)) {
-      if (answer.length > question.selectionLimit) {
-        // Don't update state - keep previous selection
-        return;
-      }
+    const q     = normalizedQuestions.find(q => q.questionId === questionId);
+    const index = normalizedQuestions.findIndex(q => q.questionId === questionId);
+    if (!q) return;
+
+    const isMultiple = q.multipleSelections === 'yes' || q.multipleSelections === true;
+    if (isMultiple && q.selectionLimit) {
+      const count = q.otherOption
+        ? (answer?.selectedOptions?.length ?? 0)
+        : (Array.isArray(answer) ? answer.length : 0);
+      if (count > q.selectionLimit) return;
     }
-    
-    setResponses(prev => ({
-      ...prev,
-      [questionId]: isMultiple 
-        ? (Array.isArray(answer) ? answer : [answer].filter(Boolean)) 
-        : answer
-    }));
+
+    setResponses(prev => ({ ...prev, [questionId]: answer }));
+
+    // PROBLEMA 1 & 3: detectar "Nunca" → bloquear resto da enquete
+    if (isNeverSelected(q, answer)) {
+      setNeverBlockedAt(index);
+    } else if (index === neverBlockedAt) {
+      setNeverBlockedAt(-1); // desmarcou Nunca → desbloquear
+    }
   };
 
-  // Validate responses WITH ROBUST SELECTION LIMIT VALIDATION
+  const isNeverBlocked = neverBlockedAt !== -1;
+
   const allResponsesValid = useMemo(() => {
-    const validationResults = normalizedQuestions.map(question => {
-      const answer = responses[question.questionId];
-      const isMultiple = question.multipleSelections;
+    // Se bloqueado por Nunca, só valida a pergunta que tinha Nunca
+    return visibleQuestions.every((q, i) =>
+      isQuestionValid(q, responses[q.questionId], i, visibleQuestions, responses)
+    );
+  }, [responses, visibleQuestions]);
 
-      // VALIDATION 1: Selection limit for multiple choice
-      if (isMultiple && Array.isArray(answer) && question.selectionLimit) {
-        if (answer.length > question.selectionLimit) {
-          return false;
-        }
+  const answeredCount = useMemo(() => {
+    return visibleQuestions.filter((q, i) => {
+      // Condicional sem Otro anterior → conta como respondida automaticamente
+      if (isConditionalOnOtro(q) && !prevHasOtroSelected(visibleQuestions, i, responses)) return true;
+      const r = responses[q.questionId];
+      if (q.type === 'text') return (r || '').trim().length > 0;
+      if (q.otherOption) {
+        const isM = q.multipleSelections === 'yes' || q.multipleSelections === true;
+        return isM ? (r?.selectedOptions?.length ?? 0) > 0 : !!r?.selectedOption;
       }
-
-      // VALIDATION 2: Required response
-      if (isMultiple) {
-        if (!Array.isArray(answer) || answer.length === 0) {
-          return false;
-        }
-      } else {
-        if (answer === undefined || answer === null || answer === '') {
-          return false;
-        }
+      if (q.multipleSelections === 'yes' || q.multipleSelections === true) {
+        return Array.isArray(r) ? r.length > 0 : false;
       }
+      return r !== '' && r !== null && r !== undefined;
+    }).length;
+  }, [responses, visibleQuestions]);
 
-      // VALIDATION 3: Text length
-      if (question.type === 'text') {
-        const lengthConfig = {
-          short: { min: 1, max: 100 },
-          medium: { min: 10, max: 300 },
-          long: { min: 50, max: 1000 },
-          unrestricted: { min: 0, max: Infinity }
-        }[question.answerLength?.toLowerCase()?.trim() || 'unrestricted'];
-        
-        const answerText = answer || '';
-        const isValidLength = answerText.length >= lengthConfig.min && answerText.length <= lengthConfig.max;
-        
-        if (!isValidLength) {
-          return false;
-        }
-      }
-      
-      return true;
-    });
-
-    const validCount = validationResults.filter(r => r).length;
-    const allValid = validCount === validationResults.length;
-    
-    return allValid;
-  }, [responses, normalizedQuestions]);
-
-  // ROBUST Submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // FINAL VALIDATION BEFORE SUBMISSION
-    if (!allResponsesValid) {
-      alert('Please complete all responses correctly before submitting. Check selection limits and required fields.');
-      return;
-    }
-    
-    if (!termsAccepted) {
-      alert('Please accept the terms and conditions to continue.');
-      return;
-    }
-
+    if (!allResponsesValid || !termsAccepted) return;
     setIsSubmitting(true);
-    
     try {
       const token = localStorage.getItem('token');
-      if (!token) throw new Error('Authentication token not found');
+      if (!token) throw new Error('Token de autenticación no encontrado');
 
-      // Prepare data for submission
-      const responseData = normalizedQuestions.map((q, index) => {
-        let questionId;
-        
-        // Robust strategy for question IDs
-        if (q.questionId && !isNaN(Number(q.questionId))) {
-          questionId = Number(q.questionId);
-        } else if (q.id && !isNaN(Number(q.id))) {
-          questionId = Number(q.id);
-        } else {
-          questionId = index + 1;
-        }
-
-        return {
-          questionId: questionId,
-          answer: responses[q.questionId]
-        };
+      // Enviar só as perguntas visíveis (sem as ocultadas pelo Nunca)
+      const responseData = visibleQuestions.map((q, i) => {
+        const questionId = !isNaN(Number(q.questionId))
+          ? Number(q.questionId)
+          : !isNaN(Number(q.id)) ? Number(q.id) : i + 1;
+        return { questionId, answer: responses[q.questionId] };
       });
 
-      const response = await fetch(
+      const res = await fetch(
         `https://enova-backend.onrender.com/api/surveys/respond-permissive?accessToken=${accessToken}`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(responseData),
         }
       );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        
-        try {
-          const errorJson = JSON.parse(errorText);
-          throw new Error(errorJson.message || errorJson.error || 'Error sending responses');
-        } catch {
-          throw new Error(errorText || 'Error sending responses');
-        }
+      if (!res.ok) {
+        const txt = await res.text();
+        let msg = txt;
+        try { msg = JSON.parse(txt)?.message ?? txt; } catch {}
+        throw new Error(msg || 'Error al enviar respuestas');
       }
-
       setShowSuccessModal(true);
-      
-    } catch (error) {
-      console.error('Error sending responses:', error);
-      
-      // User-friendly error messages
-      if (error.message.includes('already responded')) {
-        alert('You have already responded to this survey. Thank you for your participation!');
-      } else if (error.message.includes('response limit')) {
-        alert('This survey has reached the maximum response limit. Thank you for your interest!');
-      } else if (error.message.includes('Invalid response format')) {
-        alert('Error in response format. Please verify that all questions have been answered correctly.');
-      } else if (error.message.includes('Question with ID') && error.message.includes('not found')) {
-        alert('Survey question compatibility error. Please reload the page and try again.');
-      } else if (error.message.includes('selection limit')) {
-        alert('The allowed selection limit was exceeded for some question. Please review your responses.');
-      } else {
-        alert(`Error: ${error.message}`);
-      }
+      if (onResponseSuccess) onResponseSuccess();
+    } catch (err) {
+      console.error(err);
+      if (onResponseError) onResponseError(err);
+      const msg = err.message || '';
+      if (msg.includes('already responded')) alert('¡Ya respondiste esta encuesta. Gracias!');
+      else if (msg.includes('response limit')) alert('Esta encuesta alcanzó el límite de respuestas.');
+      else alert(`Error: ${msg}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return {
-    responses,
-    showSuccessModal,
-    termsAccepted,
-    isSubmitting,
+    responses, showSuccessModal, termsAccepted, isSubmitting,
     formComplete: allResponsesValid && termsAccepted,
-    normalizedQuestions,
+    allResponsesValid, answeredCount,
+    normalizedQuestions: visibleQuestions,
+    isNeverBlocked,
+    neverBlockedAt,
     handleResponseChange,
     handleTermsChange: (e) => setTermsAccepted(e.target.checked),
     handleSubmit,
     closeModal: () => setShowSuccessModal(false),
-    allResponsesValid 
   };
 };

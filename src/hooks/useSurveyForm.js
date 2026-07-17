@@ -154,6 +154,7 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
   const [showSuccessModal, setShowSuccessModal]  = useState(false);
   const [termsAccepted,    setTermsAccepted]    = useState(false);
   const [isSubmitting,     setIsSubmitting]     = useState(false);
+  const [submitError,      setSubmitError]      = useState(null);
   // PROBLEMA 1 & 3: índice onde "Nunca" foi selecionado (-1 = sem bloqueio)
   const [neverBlockedAt,   setNeverBlockedAt]   = useState(-1);
 
@@ -177,6 +178,7 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
     }
 
     setResponses(prev => ({ ...prev, [questionId]: answer }));
+    if (submitError) setSubmitError(null);
 
     // PROBLEMA 1 & 3: detectar "Nunca" → bloquear resto da enquete
     if (isNeverSelected(q, answer)) {
@@ -216,6 +218,7 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
     e.preventDefault();
     if (!allResponsesValid || !termsAccepted) return;
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Token de autenticación no encontrado');
@@ -228,8 +231,11 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
         return { questionId, answer: responses[q.questionId] };
       });
 
+      // Usamos o endpoint estrito (/respond): valida cada resposta contra o
+      // schema da pergunta e normaliza a opção "Outro" para texto legível
+      // nos resultados — o /respond-permissive não faz nenhuma das duas coisas.
       const res = await fetch(
-        `https://enova-backend.onrender.com/api/surveys/respond-permissive?accessToken=${accessToken}`,
+        `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -248,18 +254,23 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
       console.error(err);
       if (onResponseError) onResponseError(err);
       const msg = err.message || '';
-      if (msg.includes('already responded')) alert('¡Ya respondiste esta encuesta. Gracias!');
-      else if (msg.includes('response limit')) alert('Esta encuesta alcanzó el límite de respuestas.');
-      else alert(`Error: ${msg}`);
+      if (msg.includes('already responded')) {
+        setSubmitError('¡Ya respondiste esta encuesta. Gracias!');
+      } else if (msg.includes('response limit') || msg.includes('limit')) {
+        setSubmitError('Esta encuesta alcanzó el límite de respuestas.');
+      } else {
+        setSubmitError(msg || 'No pudimos enviar tus respuestas. Intenta de nuevo.');
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return {
-    responses, showSuccessModal, termsAccepted, isSubmitting,
+    responses, showSuccessModal, termsAccepted, isSubmitting, submitError,
     formComplete: allResponsesValid && termsAccepted,
     allResponsesValid, answeredCount,
+    totalQuestions: visibleQuestions.length,
     normalizedQuestions: visibleQuestions,
     isNeverBlocked,
     neverBlockedAt,

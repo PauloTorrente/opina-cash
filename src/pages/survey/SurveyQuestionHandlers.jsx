@@ -11,7 +11,7 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
   const hasOtherOption   = question.otherOption === true;
-  const otherOptionText  = question.otherOptionText || 'Outro (especifique)';
+  const otherOptionText  = question.otherOptionText || 'Otro (especificar)';
 
   const isMultipleSelection = useCallback(() => {
     const v = question.multipleSelections;

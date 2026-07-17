@@ -18,7 +18,7 @@ const checkAlreadyResponded = async (accessToken) => {
     // Tentamos o POST com corpo vazio — o backend retorna 400 "already responded"
     // se o user já respondeu, antes de qualquer validação de payload.
     const res = await fetch(
-      `https://enova-backend.onrender.com/api/surveys/respond-permissive?accessToken=${accessToken}`,
+      `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },

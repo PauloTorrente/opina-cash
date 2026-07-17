@@ -1,9 +1,11 @@
 import React from 'react';
 import {
   Container, SurveyHeader, Title, SurveyDescription,
+  ProgressBar, ProgressLabel, ProgressTrack, ProgressFill,
   SubmitButton, SpinnerIcon, ModalOverlay, ModalContent,
   ModalIcon, ModalTitle, ModalText, ModalButton,
-  LoadingWrapper, LoadingSpinnerLarge, LoadingText
+  LoadingWrapper, LoadingSpinnerLarge, LoadingText,
+  LimitWarning
 } from '../../components/survey/Survey.styles.jsx';
 import SurveyQuestion from './SurveyQuestion';
 import SurveyWarning from './SurveyWarning';
@@ -60,8 +62,11 @@ const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onRe
     showSuccessModal,
     termsAccepted,
     isSubmitting,
+    submitError,
     formComplete,
     allResponsesValid,
+    answeredCount,
+    totalQuestions,
     normalizedQuestions,
     isNeverBlocked,
     handleResponseChange,
@@ -69,6 +74,8 @@ const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onRe
     handleSubmit,
     closeModal,
   } = useSurveyForm({ survey, accessToken, onResponseSuccess, onResponseError });
+
+  const progressPct = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   const getButtonLabel = () => {
     if (isSubmitting) return null;
@@ -84,6 +91,15 @@ const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onRe
         <SurveyHeader>
           <Title>{survey.title}</Title>
           {survey.description && <SurveyDescription>{survey.description}</SurveyDescription>}
+          <ProgressBar>
+            <ProgressLabel>
+              <span>Progreso</span>
+              <span>{answeredCount}/{totalQuestions}</span>
+            </ProgressLabel>
+            <ProgressTrack>
+              <ProgressFill $pct={progressPct} />
+            </ProgressTrack>
+          </ProgressBar>
         </SurveyHeader>
 
         <form onSubmit={handleSubmit}>
@@ -114,6 +130,10 @@ const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onRe
           )}
 
           <SurveyWarning checked={termsAccepted} onChange={handleTermsChange} />
+
+          {submitError && (
+            <LimitWarning role="alert">⚠️ {submitError}</LimitWarning>
+          )}
 
           <SubmitButton type="submit" disabled={!formComplete || isSubmitting}>
             {isSubmitting

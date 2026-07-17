@@ -16,12 +16,14 @@ export const useSurvey = (accessTokenParam) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Convert Imgur URL to standard image format
+  // Convert an Imgur page URL (imgur.com/xxx) to its direct image format
+  // (i.imgur.com/xxx.jpg). Any other host is left untouched — rewriting it
+  // here would silently break images hosted anywhere else.
   const processImgurUrl = (url) => {
     if (!url) return null;
-    if (url.includes('i.imgur.com')) return url;
+    if (!url.includes('imgur.com') || url.includes('i.imgur.com')) return url;
     const imageId = url.split('/').pop().split('.')[0];
-    return `https://i.imgur.com/${imageId}.jpg`;
+    return imageId ? `https://i.imgur.com/${imageId}.jpg` : url;
   };
 
   // Convert YouTube URL to embed format for iframe
@@ -52,15 +54,17 @@ export const useSurvey = (accessTokenParam) => {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
-        if (!response.ok) throw new Error('Error fetching survey');
-
-        // Parse response data
+        // Parse response data (read the body once, whether it's an error or not)
+        const rawText = await response.text();
         let surveyData;
         try {
-          const rawText = await response.text();
-          surveyData = JSON.parse(rawText);
+          surveyData = rawText ? JSON.parse(rawText) : null;
         } catch (parseError) {
           throw new Error('Invalid JSON response from API');
+        }
+
+        if (!response.ok) {
+          throw new Error(surveyData?.message || 'Error fetching survey');
         }
 
         if (!surveyData) throw new Error('Survey not found');
@@ -100,7 +104,7 @@ export const useSurvey = (accessTokenParam) => {
             q.otherOption === '1';
           
           // Get the custom text for "other" option or use default
-          const otherOptionText = q.otherOptionText || 'Outro (especifique)';
+          const otherOptionText = q.otherOptionText || 'Otro (especificar)';
           
           // Create normalized question object with all required fields
           const normalizedQuestion = {

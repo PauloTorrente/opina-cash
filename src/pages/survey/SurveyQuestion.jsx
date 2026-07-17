@@ -9,17 +9,6 @@ import {
 import CharacterCounter from './CharacterCounter';
 import { useSurveyQuestionHandlers } from './SurveyQuestionHandlers';
 import { FaCheckCircle, FaRegCircle, FaKeyboard } from 'react-icons/fa';
-import styled, { keyframes } from 'styled-components';
-
-// ─── PROBLEMA 7: wrapper condicional ─────────────────────────────────────────
-const fadeUp = keyframes`from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}`;
-const ConditionalHint = styled.div`
-  font-size: 0.8rem;
-  color: #9CA3AF;
-  font-style: italic;
-  padding: 10px 4px 2px;
-  animation: ${fadeUp} 0.25s ease-out;
-`;
 
 // ─── PROBLEMA 2: Labels de escala 1-5 ─────────────────────────────────────────
 // Detecta se uma pergunta é de escala e retorna os labels correspondentes
@@ -181,12 +170,12 @@ const SurveyQuestion = ({
     return isOptionSelected(option) || currentCount < limit;
   };
 
+  // O clique já é bloqueado no onClick (via `canSel &&`) antes de chegar aqui;
+  // esta checagem é só uma segunda trava defensiva, sem alert nativo — o
+  // aviso visual já aparece via LimitWarning/DisabledHint.
   const handleOptionWithLimit = (option) => {
     if (!isMultipleSelection) { handleOptionChange(option); return; }
-    if (!canSelectMore(option)) {
-      alert(`❌ Solo puedes seleccionar hasta ${limit} opciones. Desmarca alguna para cambiar.`);
-      return;
-    }
+    if (!canSelectMore(option)) return;
     handleOptionChange(option);
   };
 

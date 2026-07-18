@@ -145,7 +145,9 @@ const CreateSurveyForm = ({ onSubmit }) => {
       questions: surveyData.questions.map((q, idx) => ({
         question: q.question,
         questionId: idx + 1,
-        type: q.type,
+        // Backend/response UI expect 'multiple', not the 'multiple_choice'
+        // value used internally by the question-type <select>.
+        type: q.type === 'multiple_choice' ? 'multiple' : q.type,
         answerLength: q.type === 'text' ? q.answerLength : undefined,
         ...(q.type === 'multiple_choice' && { 
           options: q.options.filter(opt => opt.trim() !== '') 

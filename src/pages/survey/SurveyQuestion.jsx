@@ -11,7 +11,10 @@ import { useSurveyQuestionHandlers } from './SurveyQuestionHandlers';
 import { FaCheckCircle, FaRegCircle, FaKeyboard } from 'react-icons/fa';
 
 // ─── PROBLEMA 2: Labels de escala 1-5 ─────────────────────────────────────────
-// Detecta se uma pergunta é de escala e retorna os labels correspondentes
+// Detecta se uma pergunta é de escala e retorna os labels correspondentes.
+// O idioma da pergunta é detectado pelo pronome "você/voce" (exclusivo do
+// PT-BR) — sem isso, perguntas em português recebiam rótulos automáticos
+// em espanhol, misturando os dois idiomas na mesma pergunta.
 const detectScaleLabels = (question) => {
   const text = (question.question || '').toLowerCase();
   const opts  = question.options || [];
@@ -23,9 +26,17 @@ const detectScaleLabels = (question) => {
 
   if (!isScale5) return null;
 
+  const isPortuguese = text.includes('você') || text.includes('voce');
+
   // Mapeamento por tipo de pergunta detectado no texto
-  if (text.includes('probable') || text.includes('recomendarías') || text.includes('recomendar')) {
-    return {
+  if (text.includes('probabilidade') || text.includes('provável') || text.includes('probable') || text.includes('recomendarías') || text.includes('recomendaria') || text.includes('recomendar')) {
+    return isPortuguese ? {
+      1: '1 — Nada provável',
+      2: '2 — Pouco provável',
+      3: '3 — Neutro',
+      4: '4 — Provável',
+      5: '5 — Muito provável',
+    } : {
       1: '1 — Nada probable',
       2: '2 — Poco probable',
       3: '3 — Ni probable, ni improbable',
@@ -33,8 +44,14 @@ const detectScaleLabels = (question) => {
       5: '5 — Muy probable',
     };
   }
-  if (text.includes('satisfech') || text.includes('satisfacci')) {
-    return {
+  if (text.includes('satisfeit') || text.includes('satisfaç') || text.includes('satisfech') || text.includes('satisfacci')) {
+    return isPortuguese ? {
+      1: '1 — Muito insatisfeito',
+      2: '2 — Insatisfeito',
+      3: '3 — Neutro',
+      4: '4 — Satisfeito',
+      5: '5 — Muito satisfeito',
+    } : {
       1: '1 — Muy insatisfecho',
       2: '2 — Insatisfecho',
       3: '3 — Neutral',
@@ -42,8 +59,14 @@ const detectScaleLabels = (question) => {
       5: '5 — Muy satisfecho',
     };
   }
-  if (text.includes('frecuencia') || text.includes('frecuent') || text.includes('cuántas veces') || text.includes('con qué frecuencia')) {
-    return {
+  if (text.includes('frequ') || text.includes('frecuen') || text.includes('cuántas veces') || text.includes('con qué frecuencia') || text.includes('com que frequência')) {
+    return isPortuguese ? {
+      1: '1 — Nunca',
+      2: '2 — Raramente',
+      3: '3 — Às vezes',
+      4: '4 — Frequentemente',
+      5: '5 — Sempre',
+    } : {
       1: '1 — Nunca',
       2: '2 — Raramente',
       3: '3 — A veces',
@@ -51,8 +74,14 @@ const detectScaleLabels = (question) => {
       5: '5 — Siempre',
     };
   }
-  if (text.includes('acuerdo') || text.includes('desacuerdo')) {
-    return {
+  if (text.includes('concord') || text.includes('discord') || text.includes('acuerdo') || text.includes('desacuerdo')) {
+    return isPortuguese ? {
+      1: '1 — Discordo totalmente',
+      2: '2 — Discordo',
+      3: '3 — Neutro',
+      4: '4 — Concordo',
+      5: '5 — Concordo totalmente',
+    } : {
       1: '1 — Totalmente en desacuerdo',
       2: '2 — En desacuerdo',
       3: '3 — Ni de acuerdo ni en desacuerdo',
@@ -60,8 +89,14 @@ const detectScaleLabels = (question) => {
       5: '5 — Totalmente de acuerdo',
     };
   }
-  if (text.includes('calidad') || text.includes('excelente') || text.includes('calificación') || text.includes('calific')) {
-    return {
+  if (text.includes('qualidade') || text.includes('avaliaria') || text.includes('avalia') || text.includes('calidad') || text.includes('calificación') || text.includes('calific') || text.includes('excelente')) {
+    return isPortuguese ? {
+      1: '1 — Muito ruim',
+      2: '2 — Ruim',
+      3: '3 — Regular',
+      4: '4 — Bom',
+      5: '5 — Excelente',
+    } : {
       1: '1 — Muy malo',
       2: '2 — Malo',
       3: '3 — Regular',
@@ -69,8 +104,14 @@ const detectScaleLabels = (question) => {
       5: '5 — Excelente',
     };
   }
-  if (text.includes('importan') || text.includes('relevante') || text.includes('prioridad')) {
-    return {
+  if (text.includes('importan') || text.includes('relevante') || text.includes('prioridade') || text.includes('prioridad')) {
+    return isPortuguese ? {
+      1: '1 — Nada importante',
+      2: '2 — Pouco importante',
+      3: '3 — Moderadamente importante',
+      4: '4 — Importante',
+      5: '5 — Muito importante',
+    } : {
       1: '1 — Nada importante',
       2: '2 — Poco importante',
       3: '3 — Moderadamente importante',
@@ -79,7 +120,13 @@ const detectScaleLabels = (question) => {
     };
   }
   // Escala genérica
-  return {
+  return isPortuguese ? {
+    1: '1 — Muito baixo',
+    2: '2 — Baixo',
+    3: '3 — Médio',
+    4: '4 — Alto',
+    5: '5 — Muito alto',
+  } : {
     1: '1 — Muy bajo',
     2: '2 — Bajo',
     3: '3 — Medio',
@@ -98,7 +145,14 @@ const isConditionalOnOtro = (q) => {
     text.includes('si respondiste otro') ||
     text.includes('si elegiste otro') ||
     text.includes('si marcaste otro') ||
-    (/si (seleccionaste|respondiste|elegiste|marcaste)/.test(text) && text.includes('otro'))
+    (/si (seleccionaste|respondiste|elegiste|marcaste)/.test(text) && text.includes('otro')) ||
+    text.includes("se você selecionou 'outro'") ||
+    text.includes('se você selecionou "outro"') ||
+    text.includes('se você selecionou outro') ||
+    text.includes('se você respondeu outro') ||
+    text.includes('se você escolheu outro') ||
+    text.includes('se você marcou outro') ||
+    (/se (voc[eê] )?(selecionou|respondeu|escolheu|marcou)/.test(text) && text.includes('outro'))
   );
 };
 
@@ -116,7 +170,7 @@ const prevHasOtroSelected = (allQuestions, currentIndex, allResponses) => {
   const selected = isMultiple
     ? (Array.isArray(ans) ? ans : [])
     : (ans ? [ans] : []);
-  return selected.some(s => typeof s === 'string' && s.toLowerCase() === 'otro');
+  return selected.some(s => typeof s === 'string' && ['otro', 'outro'].includes(s.toLowerCase()));
 };
 
 // ─── Componente ───────────────────────────────────────────────────────────────

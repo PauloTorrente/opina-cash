@@ -73,7 +73,14 @@ const isConditionalOnOtro = (q) => {
     text.includes('si respondiste otro') ||
     text.includes('si elegiste otro') ||
     text.includes('si marcaste otro') ||
-    (/si (seleccionaste|respondiste|elegiste|marcaste)/.test(text) && text.includes('otro'))
+    (/si (seleccionaste|respondiste|elegiste|marcaste)/.test(text) && text.includes('otro')) ||
+    text.includes("se você selecionou 'outro'") ||
+    text.includes('se você selecionou "outro"') ||
+    text.includes('se você selecionou outro') ||
+    text.includes('se você respondeu outro') ||
+    text.includes('se você escolheu outro') ||
+    text.includes('se você marcou outro') ||
+    (/se (voc[eê] )?(selecionou|respondeu|escolheu|marcou)/.test(text) && text.includes('outro'))
   );
 };
 
@@ -94,7 +101,7 @@ const prevHasOtroSelected = (questions, currentIndex, responses) => {
   const selected = isMultiple
     ? (Array.isArray(ans) ? ans : [])
     : (ans ? [ans] : []);
-  return selected.some(s => typeof s === 'string' && s.toLowerCase() === 'otro');
+  return selected.some(s => typeof s === 'string' && ['otro', 'outro'].includes(s.toLowerCase()));
 };
 
 // ─── Validação de uma resposta ────────────────────────────────────────────────

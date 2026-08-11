@@ -10,8 +10,10 @@ import {
   IconWrapper,
   InfoCard
 } from './SuccessModal.styles';
+import { useTranslation } from '../../../i18n/LanguageContext';
 
 const SuccessModal = ({ onClose }) => {
+  const { t } = useTranslation();
   const [showButton, setShowButton] = useState(false);
   const [countdown, setCountdown] = useState(10);
 
@@ -49,10 +51,10 @@ const SuccessModal = ({ onClose }) => {
           <FiMail size={40} />
         </IconWrapper>
 
-        <ModalTitle>Confirma tu correo electrónico</ModalTitle>
-        
+        <ModalTitle>{t('successModal.title')}</ModalTitle>
+
         <p style={{ color: '#64748b', marginBottom: '1rem' }}>
-          Hemos enviado un enlace de confirmación a tu email
+          {t('successModal.subtitle')}
         </p>
 
         <InfoCard
@@ -62,15 +64,15 @@ const SuccessModal = ({ onClose }) => {
         >
           <p>
             <FiCheckCircle color="#10b981" size={18} />
-            <span>Busca en tu bandeja de entrada o spam</span>
+            <span>{t('successModal.step1')}</span>
           </p>
           <p>
             <FiCheckCircle color="#10b981" size={18} />
-            <span>Haz clic en el enlace de confirmación</span>
+            <span>{t('successModal.step2')}</span>
           </p>
           <p>
             <FiCheckCircle color="#10b981" size={18} />
-            <span>Tu cuenta se activará automáticamente</span>
+            <span>{t('successModal.step3')}</span>
           </p>
         </InfoCard>
 
@@ -81,24 +83,24 @@ const SuccessModal = ({ onClose }) => {
             transition={{ repeat: Infinity, repeatType: 'reverse', duration: 1 }}
           >
             <FiClock size={16} />
-            El botón aparecerá en {countdown}s
+            {t('successModal.countdown', { seconds: countdown })}
           </CountdownText>
         ) : (
-          <ModalButton 
+          <ModalButton
             onClick={onClose}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            Continuar <FiArrowRight />
+            {t('successModal.continueButton')} <FiArrowRight />
           </ModalButton>
         )}
 
-        <motion.p 
-          style={{ 
-            marginTop: '1.5rem', 
-            fontSize: '0.8rem', 
+        <motion.p
+          style={{
+            marginTop: '1.5rem',
+            fontSize: '0.8rem',
             color: '#94a3b8',
             opacity: 0.7
           }}
@@ -106,7 +108,7 @@ const SuccessModal = ({ onClose }) => {
           animate={{ opacity: 0.7 }}
           transition={{ delay: 0.5 }}
         >
-          ¿No recibiste el email? Revisa tu carpeta de spam o solicita otro.
+          {t('successModal.resendHint')}
         </motion.p>
       </ModalContent>
     </ModalOverlay>

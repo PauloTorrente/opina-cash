@@ -8,6 +8,7 @@ import AuthContext from '../../context/AuthContext';
 import InfoReminder from '../../components/common/InfoReminder';
 import LoginSuccessModal from '../../components/Auth/LoginSuccessModal';
 import { useIncompleteProfile } from '../../hooks/useIncompleteProfile';
+import { useTranslation } from '../../i18n/LanguageContext';
 import logo from '../../assets/images/logo.png';
 import '@fontsource/poppins/700.css';
 import { 
@@ -21,6 +22,7 @@ import {
 } from './Home.styles';
 
 const Home = () => {
+  const { t } = useTranslation();
   // State management for user choices and UI visibility
   const [userChoice, setUserChoice] = useState(null);
   const [showStartButton, setShowStartButton] = useState(true); 
@@ -72,19 +74,19 @@ const Home = () => {
 
       {/* Main header section with logo and title */}
       <HeaderContainer variants={headerVariants} initial="hidden" animate="visible">
-        <Logo src={logo} alt="Opina Cash Logo" />
-        
-        <MainTitle 
+        <Logo src={logo} alt={t('home.logoAlt')} />
+
+        <MainTitle
           variants={titleVariants}
           initial="hidden"
           animate="visible"
           whileHover={{ scale: 1.02 }}
         >
-          Donde tu opinión paga
+          {t('home.title')}
         </MainTitle>
-        
+
         <SubTitle>
-          Gana dinero real compartiendo tu opinión
+          {t('home.subtitle')}
         </SubTitle>
         
         <TitleDivider 
@@ -99,7 +101,7 @@ const Home = () => {
             onClick={handleStartNow} 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            aria-label="Comenzar a ganar"
+            aria-label={t('home.startButtonAria')}
             style={{
               background: 'linear-gradient( #FF6B00, #FF00A8)',
               color: 'white',
@@ -110,7 +112,7 @@ const Home = () => {
               marginTop: '1rem'
             }}
           >
-            ¡Empieza a ganar ahora!
+            {t('home.startButton')}
           </Button>
         )}
       </HeaderContainer>
@@ -118,37 +120,37 @@ const Home = () => {
       {/* Account type selection - shown after clicking main CTA */}
       {userChoice === null && !showStartButton && (
         <SurveyInfoSection>
-          <p>¿Eres nuevo o ya tienes cuenta?</p>
-          <Button 
+          <p>{t('home.chooseQuestion')}</p>
+          <Button
             onClick={() => handleChoice('new')}
-            aria-label="Registrarse como nuevo usuario"
+            aria-label={t('home.newUserAria')}
             style={{
               background: 'linear-gradient(90deg, #4facfe 0%, #00f2fe 100%)',
               color: 'white',
               margin: '0.5rem'
             }}
           >
-            Soy nuevo
+            {t('home.newUser')}
           </Button>
-          <Button 
+          <Button
             onClick={() => handleChoice('existing')}
-            aria-label="Iniciar sesión"
+            aria-label={t('home.existingUserAria')}
             style={{
               background: 'linear-gradient(90deg, #a1c4fd 0%, #c2e9fb 100%)',
               color: '#333',
               margin: '0.5rem'
             }}
           >
-            Ya tengo cuenta
+            {t('home.existingUser')}
           </Button>
         </SurveyInfoSection>
       )}
-      
+
 
       {/* Survey information section */}
       <SurveyInfoSection>
         <p style={{ fontSize: '1.1rem', lineHeight: '1.6' }}>
-          Responde encuestas desde tu celular en menos de 5 minutos y gana X Euros por cada una.
+          {t('home.surveyInfo')}
         </p>
       </SurveyInfoSection>
 

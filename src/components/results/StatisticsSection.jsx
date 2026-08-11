@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components'; 
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Animation variants for the container (fade in with slide-up effect)
 const containerVariants = {
@@ -55,6 +56,7 @@ const StatValue = styled.span`
 `;
 
 const StatisticsSection = ({ responses }) => {
+  const { t } = useTranslation();
   // Calculate total responses
   const totalResponses = responses.length;
 
@@ -84,17 +86,17 @@ const StatisticsSection = ({ responses }) => {
       initial="hidden"
       animate="visible"
     >
-      <Title>Estadísticas</Title> {/* Title of the statistics section */}
+      <Title>{t('statisticsSection.title')}</Title> {/* Title of the statistics section */}
 
       <StatItem variants={itemVariants}> {/* Animation for each stat item */}
-        <StatLabel>Total de respuestas:</StatLabel> {/* Label for total responses */}
+        <StatLabel>{t('statisticsSection.totalResponses')}</StatLabel> {/* Label for total responses */}
         <StatValue>{totalResponses}</StatValue> {/* Display total responses */}
       </StatItem>
 
       {/* Render the most common answers for each question */}
       {mostCommonAnswers.map((item, index) => (
         <StatItem key={index} variants={itemVariants}> {/* Animation for each stat item */}
-          <StatLabel>Respuesta más común para "{item.question}":</StatLabel> {/* Label for the most common answer */}
+          <StatLabel>{t('statisticsSection.mostCommonAnswer', { question: item.question })}</StatLabel> {/* Label for the most common answer */}
           <StatValue>{item.mostCommon}</StatValue> {/* Display the most common answer */}
         </StatItem>
       ))}

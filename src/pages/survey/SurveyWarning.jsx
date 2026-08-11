@@ -3,29 +3,32 @@ import {
   WarningBox, WarningTitle, WarningText,
   TermsRow, TermsCheckbox, TermsLabel
 } from '../../components/survey/Survey.styles.jsx';
+import { useTranslation } from '../../i18n/LanguageContext';
 
-const SurveyWarning = ({ checked, onChange }) => (
-  <WarningBox>
-    <WarningTitle>
-      <span>⚠️</span>
-      Importante
-    </WarningTitle>
-    <WarningText>
-      Al enviar tus respuestas, aceptas que serán evaluadas para determinar tu puntuación.
-      Respuestas completas y bien elaboradas aumentarán tus oportunidades de ganar más recompensas.
-    </WarningText>
-    <TermsRow $checked={checked}>
-      <TermsCheckbox
-        id="survey-terms"
-        checked={checked}
-        onChange={onChange}
-        required
-      />
-      <TermsLabel htmlFor="survey-terms">
-        Entiendo y acepto los términos
-      </TermsLabel>
-    </TermsRow>
-  </WarningBox>
-);
+const SurveyWarning = ({ checked, onChange }) => {
+  const { t } = useTranslation();
+  return (
+    <WarningBox>
+      <WarningTitle>
+        <span>⚠️</span>
+        {t('surveyWarning.title')}
+      </WarningTitle>
+      <WarningText>
+        {t('surveyWarning.text')}
+      </WarningText>
+      <TermsRow $checked={checked}>
+        <TermsCheckbox
+          id="survey-terms"
+          checked={checked}
+          onChange={onChange}
+          required
+        />
+        <TermsLabel htmlFor="survey-terms">
+          {t('surveyWarning.termsLabel')}
+        </TermsLabel>
+      </TermsRow>
+    </WarningBox>
+  );
+};
 
 export default SurveyWarning;

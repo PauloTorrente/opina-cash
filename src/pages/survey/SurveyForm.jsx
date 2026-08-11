@@ -10,6 +10,7 @@ import {
 import SurveyQuestion from './SurveyQuestion';
 import SurveyWarning from './SurveyWarning';
 import { useSurveyForm } from '../../hooks/useSurveyForm';
+import { useTranslation } from '../../i18n/LanguageContext';
 import styled, { keyframes } from 'styled-components';
 
 // ─── Banner "Nunca" — encerra a enquete ───────────────────────────────────────
@@ -42,21 +43,25 @@ const NeverBanner = styled.div`
 `;
 
 // ─── Modal de éxito ───────────────────────────────────────────────────────────
-const SuccessModal = ({ onClose }) => (
-  <ModalOverlay>
-    <ModalContent>
-      <ModalIcon>🎉</ModalIcon>
-      <ModalTitle>¡Encuesta completada!</ModalTitle>
-      <ModalText>
-        Gracias por participar. Tu recompensa ya fue procesada y pronto se reflejará en tu cuenta.
-      </ModalText>
-      <ModalButton onClick={onClose}>Volver al inicio</ModalButton>
-    </ModalContent>
-  </ModalOverlay>
-);
+const SuccessModal = ({ onClose }) => {
+  const { t } = useTranslation();
+  return (
+    <ModalOverlay>
+      <ModalContent>
+        <ModalIcon>🎉</ModalIcon>
+        <ModalTitle>{t('surveyForm.successTitle')}</ModalTitle>
+        <ModalText>
+          {t('surveyForm.successMessage')}
+        </ModalText>
+        <ModalButton onClick={onClose}>{t('surveyForm.backHome')}</ModalButton>
+      </ModalContent>
+    </ModalOverlay>
+  );
+};
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onResponseError }) => {
+  const { t } = useTranslation();
   const {
     responses,
     showSuccessModal,
@@ -79,10 +84,10 @@ const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onRe
 
   const getButtonLabel = () => {
     if (isSubmitting) return null;
-    if (!allResponsesValid) return 'Completa todas las respuestas';
-    if (!termsAccepted)     return 'Acepta los términos para continuar';
-    if (isNeverBlocked)     return 'Enviar y finalizar';
-    return 'Enviar respuestas';
+    if (!allResponsesValid) return t('surveyForm.buttonIncomplete');
+    if (!termsAccepted)     return t('surveyForm.buttonAcceptTerms');
+    if (isNeverBlocked)     return t('surveyForm.buttonFinish');
+    return t('surveyForm.buttonSubmit');
   };
 
   return (
@@ -93,7 +98,7 @@ const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onRe
           {survey.description && <SurveyDescription>{survey.description}</SurveyDescription>}
           <ProgressBar>
             <ProgressLabel>
-              <span>Progreso</span>
+              <span>{t('surveyForm.progress')}</span>
               <span>{answeredCount}/{totalQuestions}</span>
             </ProgressLabel>
             <ProgressTrack>
@@ -121,10 +126,9 @@ const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onRe
           {isNeverBlocked && (
             <NeverBanner>
               <span className="icon">🚫</span>
-              <div className="title">Encuesta finalizada anticipadamente</div>
+              <div className="title">{t('surveyForm.neverBannerTitle')}</div>
               <div className="sub">
-                Como no utilizas este servicio, no es necesario que continúes respondiendo.
-                Puedes enviar tus respuestas con el botón de abajo.
+                {t('surveyForm.neverBannerText')}
               </div>
             </NeverBanner>
           )}
@@ -137,7 +141,7 @@ const SurveyForm = ({ survey, accessToken, onModalClose, onResponseSuccess, onRe
 
           <SubmitButton type="submit" disabled={!formComplete || isSubmitting}>
             {isSubmitting
-              ? <><SpinnerIcon /> Enviando...</>
+              ? <><SpinnerIcon /> {t('surveyForm.submitting')}</>
               : <>{formComplete ? '✅' : '⏳'} {getButtonLabel()}</>
             }
           </SubmitButton>

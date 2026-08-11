@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Container for the success message with padding and centered text
 const Container = styled.div`
@@ -57,6 +58,7 @@ const CopyButton = styled.button`
 
 // Main component to show the success message after survey creation
 const SurveyCreatedSuccess = ({ survey, accessToken }) => {
+  const { t } = useTranslation();
   // Link for the survey created, using the accessToken
   const link = `https://www.opinacash.com/survey/respond?accessToken=${accessToken}`;
   const [copySuccess, setCopySuccess] = useState(''); // State to show copy success message
@@ -64,20 +66,20 @@ const SurveyCreatedSuccess = ({ survey, accessToken }) => {
   // Function to handle copying the link to the clipboard
   const handleCopy = () => {
     navigator.clipboard.writeText(link).then(() => {
-      setCopySuccess('¡Copiado!'); // Show success message
+      setCopySuccess(t('surveyCreatedSuccess.copied')); // Show success message
       setTimeout(() => setCopySuccess(''), 2000); // Clear success message after 2 seconds
     });
   };
 
   return (
     <Container as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-      <SuccessTitle>¡Encuesta creada con éxito!</SuccessTitle>
+      <SuccessTitle>{t('surveyCreatedSuccess.title')}</SuccessTitle>
       <Message>
-        La encuesta <strong>{survey.title}</strong> ha sido creada correctamente.
+        {t('surveyCreatedSuccess.messageBefore')} <strong>{survey.title}</strong> {t('surveyCreatedSuccess.messageAfter')}
       </Message>
       <CopyContainer>
         <LinkInput type="text" value={link} readOnly /> {/* Display the link, read-only */}
-        <CopyButton onClick={handleCopy}>Copiar</CopyButton> {/* Button to copy the link */}
+        <CopyButton onClick={handleCopy}>{t('surveyCreatedSuccess.copy')}</CopyButton> {/* Button to copy the link */}
       </CopyContainer>
       {copySuccess && <p>{copySuccess}</p>} {/* Show the success message if link is copied */}
     </Container>

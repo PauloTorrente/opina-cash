@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useNavigate, useParams } from 'react-router-dom'; 
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Styled Components
 const Container = styled.div`
@@ -62,7 +63,8 @@ const CTAButton = styled.button`
 `;
 
 const RegistrationSuccess = () => {
-  const { confirmationToken } = useParams(); 
+  const { t } = useTranslation();
+  const { confirmationToken } = useParams();
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
@@ -76,16 +78,16 @@ const RegistrationSuccess = () => {
         if (response.ok) {
           const data = await response.json();
           setSuccess(true);
-          setMessage(data.message || "Registro confirmado com sucesso!");
+          setMessage(data.message || t('registrationSuccess.defaultSuccessMessage'));
         } else {
           const errorData = await response.json();
           setSuccess(false);
-          setMessage(errorData.message || "Falha ao confirmar o registro. Tente novamente.");
+          setMessage(errorData.message || t('registrationSuccess.defaultErrorMessage'));
           setErrorDetails(JSON.stringify(errorData, null, 2)); // Exibir erro detalhado
         }
       } catch (error) {
         setSuccess(false);
-        setMessage("Ocorreu um erro. Tente novamente.");
+        setMessage(t('registrationSuccess.defaultCatchError'));
         setErrorDetails(error.toString()); // Exibir erro no frontend
       }
     };
@@ -100,10 +102,10 @@ const RegistrationSuccess = () => {
   return (
     <Container>
       <SuccessMessage>
-        <Title success={success}>{success ? "¡Registro exitoso!" : "¡Error al confirmar!"}</Title>
+        <Title success={success}>{success ? t('registrationSuccess.titleSuccess') : t('registrationSuccess.titleError')}</Title>
         <Subtitle>{message}</Subtitle>
         {errorDetails && <ErrorDetails>{errorDetails}</ErrorDetails>}
-        {success && <CTAButton onClick={handleLoginRedirect}>Iniciar sesión</CTAButton>}
+        {success && <CTAButton onClick={handleLoginRedirect}>{t('registrationSuccess.loginButton')}</CTAButton>}
       </SuccessMessage>
     </Container>
   );

@@ -1,20 +1,22 @@
 export const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-export const validatePassword = (password) => {
+// `t` is the translation function from useTranslation() — these are plain
+// functions (not components/hooks), so callers must pass it in explicitly.
+export const validatePassword = (password, t) => {
   const hasLetters = /[a-zA-Z]/.test(password);
   const hasNumbers = /\d/.test(password);
   const hasSpecialChars = /[!@#$%^&*(),.?":{}|<>]/.test(password);
   const isLongEnough = password.length >= 8;
 
-  if (!isLongEnough) return 'La contraseña debe tener al menos 8 caracteres.';
-  if (!hasLetters) return 'La contraseña debe incluir letras.';
-  if (!hasNumbers) return 'La contraseña debe incluir números.';
-  if (!hasSpecialChars) return 'La contraseña debe incluir caracteres especiales (!@#$%^&*).';
+  if (!isLongEnough) return t('register.validation.passwordTooShort');
+  if (!hasLetters) return t('register.validation.passwordNeedsLetters');
+  if (!hasNumbers) return t('register.validation.passwordNeedsNumbers');
+  if (!hasSpecialChars) return t('register.validation.passwordNeedsSpecial');
 
   return null; // Retorna null se a senha for válida
 };
 
-export const validateConfirmPassword = (password, confirmPassword) => {
-  if (password !== confirmPassword) return 'Las contraseñas no coinciden.';
+export const validateConfirmPassword = (password, confirmPassword, t) => {
+  if (password !== confirmPassword) return t('register.validation.passwordMismatch');
   return null;
 };

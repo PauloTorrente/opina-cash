@@ -4,6 +4,7 @@ import ResponseChart from "../../components/results/ResponseChart";
 import CommentSection from '../../components/results/CommentSection';
 import StatisticsSection from '../../components/results/StatisticsSection';
 import { processChartData } from '../../utils/processChartData';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const DetailsContainer = styled.div`
   padding: 2rem;
@@ -60,7 +61,8 @@ const RightColumn = styled.div`
 `;
 
 const ResultsDetails = ({ responses, survey }) => {
-  if (!survey) return <p>Enquete não encontrada.</p>;
+  const { t } = useTranslation();
+  if (!survey) return <p>{t('resultsDetails.surveyNotFound')}</p>;
 
   // Processa as respostas para gráficos e comentários
   const processedResponses = responses.map(response => ({
@@ -93,11 +95,11 @@ const ResultsDetails = ({ responses, survey }) => {
         document.body.removeChild(a);
       } else {
         console.error('Erro ao exportar respostas:', response.statusText);
-        alert('Erro ao exportar respostas. Verifique o console para mais detalhes.');
+        alert(t('resultsDetails.exportError'));
       }
     } catch (error) {
       console.error('Erro ao exportar respostas:', error);
-      alert('Erro ao exportar respostas. Verifique o console para mais detalhes.');
+      alert(t('resultsDetails.exportError'));
     }
   };
 
@@ -105,7 +107,7 @@ const ResultsDetails = ({ responses, survey }) => {
     <DetailsContainer>
       <Title>
         {survey.title}
-        <ExportButton onClick={handleExport}>Exportar para Excel</ExportButton>
+        <ExportButton onClick={handleExport}>{t('resultsDetails.exportButton')}</ExportButton>
       </Title>
       <p>{survey.description}</p>
 

@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import AuthContext from '../../../context/AuthContext';
+import { useTranslation } from '../../../i18n/LanguageContext';
 import {
   NavbarContainer,
   Brand,
@@ -11,6 +12,8 @@ import {
   Overlay,
   CloseButton,
   NavLink,
+  LanguageSwitcher,
+  LanguageOption,
   LogoutButton,
 } from './Navbar.styles';
 
@@ -30,6 +33,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
+  const { t, language, setLanguage } = useTranslation();
 
   const handleLogout = () => {
     logout();
@@ -63,7 +67,7 @@ const Navbar = () => {
             id="hamburger"
             className={isOpen ? 'open' : ''}
             onClick={() => setIsOpen(!isOpen)}
-            aria-label="Menu"
+            aria-label={t('navbar.menuAriaLabel')}
             aria-expanded={isOpen}
           >
             <div />
@@ -94,21 +98,25 @@ const Navbar = () => {
               variants={sidebarVariants}
               transition={{ duration: 0.4, ease: 'easeOut' }}
             >
-              <CloseButton onClick={() => setIsOpen(false)} aria-label="Cerrar menú">&times;</CloseButton>
-              <NavLink as={Link} to="/" onClick={() => setIsOpen(false)}>Inicio</NavLink>
+              <CloseButton onClick={() => setIsOpen(false)} aria-label={t('navbar.closeMenuAriaLabel')}>&times;</CloseButton>
+              <NavLink as={Link} to="/" onClick={() => setIsOpen(false)}>{t('navbar.home')}</NavLink>
               {user ? (
                 <>
-                  <NavLink as={Link} to="/profile" onClick={() => setIsOpen(false)}>Mi perfil</NavLink>
+                  <NavLink as={Link} to="/profile" onClick={() => setIsOpen(false)}>{t('navbar.myProfile')}</NavLink>
                   <LogoutButton onClick={() => { handleLogout(); setIsOpen(false); }}>
-                    Cerrar sesión
+                    {t('navbar.logout')}
                   </LogoutButton>
                 </>
               ) : (
                 <>
-                  <NavLink as={Link} to="/login" onClick={() => setIsOpen(false)}>Iniciar sesión</NavLink>
-                  <NavLink as={Link} to="/register" onClick={() => setIsOpen(false)}>Registrarse</NavLink>
+                  <NavLink as={Link} to="/login" onClick={() => setIsOpen(false)}>{t('navbar.login')}</NavLink>
+                  <NavLink as={Link} to="/register" onClick={() => setIsOpen(false)}>{t('navbar.register')}</NavLink>
                 </>
               )}
+              <LanguageSwitcher>
+                <LanguageOption $active={language === 'es'} onClick={() => setLanguage('es')}>ES</LanguageOption>
+                <LanguageOption $active={language === 'pt-BR'} onClick={() => setLanguage('pt-BR')}>PT-BR</LanguageOption>
+              </LanguageSwitcher>
             </Sidebar>
           </>
         )}

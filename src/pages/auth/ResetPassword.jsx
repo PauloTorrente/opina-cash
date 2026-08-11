@@ -4,6 +4,7 @@ import Button from '../../components/common/Button/Button';
 import InputField from '../../components/common/Input/InputField';
 import styled from 'styled-components';
 import { resetPassword as resetPasswordService } from '../../services/api';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const FormContainer = styled.div`
   width: 100%;
@@ -44,6 +45,7 @@ const ErrorMessage = styled.p`
 `;
 
 const ResetPassword = () => {
+  const { t } = useTranslation();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [success, setSuccess] = useState('');
@@ -60,7 +62,7 @@ const ResetPassword = () => {
     if (tokenParam) {
       setToken(tokenParam);
     } else {
-      setError('Token inválido o expirado.');
+      setError(t('resetPassword.invalidToken'));
     }
   }, [location]);
 
@@ -70,7 +72,7 @@ const ResetPassword = () => {
     setError('');
 
     if (newPassword !== confirmPassword) {
-      setError('Las contraseñas no coinciden.');
+      setError(t('resetPassword.passwordMismatch'));
       setIsLoading(false);
       return;
     }
@@ -83,7 +85,7 @@ const ResetPassword = () => {
         navigate('/login');
       }, 3000);
     } catch (err) {
-      setError(err.message || 'Ocurrió un error. Por favor, inténtelo de nuevo.');
+      setError(err.message || t('resetPassword.genericError'));
     } finally {
       setIsLoading(false);
     }
@@ -91,14 +93,14 @@ const ResetPassword = () => {
 
   return (
     <FormContainer>
-      <FormTitle>Establecer Nueva Contraseña</FormTitle>
+      <FormTitle>{t('resetPassword.title')}</FormTitle>
       {success && <SuccessMessage>{success}</SuccessMessage>}
       {error && <ErrorMessage>{error}</ErrorMessage>}
       <Form onSubmit={handleSubmit}>
         <InputField
           type="password"
           name="newPassword"
-          placeholder="Nueva contraseña"
+          placeholder={t('resetPassword.newPasswordPlaceholder')}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           required
@@ -106,13 +108,13 @@ const ResetPassword = () => {
         <InputField
           type="password"
           name="confirmPassword"
-          placeholder="Confirmar nueva contraseña"
+          placeholder={t('resetPassword.confirmPasswordPlaceholder')}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
         />
         <Button type="submit" disabled={isLoading || !token}>
-          {isLoading ? 'Restableciendo...' : 'Restablecer Contraseña'}
+          {isLoading ? t('resetPassword.submitLoading') : t('resetPassword.submit')}
         </Button>
       </Form>
     </FormContainer>

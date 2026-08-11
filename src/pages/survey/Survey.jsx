@@ -9,6 +9,7 @@ import AuthContext from '../../context/AuthContext';
 import SurveyForm from './SurveyForm';
 import SurveyAlreadyResponded from './SurveyAlreadyResponded';
 import SurveyResponseLimitReached from './SurveyResponseLimitReached';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // ─── Verificação se o usuário já respondeu ────────────────────────────────────
 const checkAlreadyResponded = async (accessToken) => {
@@ -44,6 +45,7 @@ const checkAlreadyResponded = async (accessToken) => {
 };
 
 const Survey = () => {
+  const { t, language } = useTranslation();
   const navigate    = useNavigate();
   const location    = useLocation();
   const { user }    = useContext(AuthContext);
@@ -77,7 +79,7 @@ const Survey = () => {
     return (
       <LoadingWrapper>
         <LoadingSpinnerLarge />
-        <LoadingText>Cargando encuesta…</LoadingText>
+        <LoadingText>{t('survey.loading')}</LoadingText>
       </LoadingWrapper>
     );
   }
@@ -87,9 +89,9 @@ const Survey = () => {
       <StatePageWrapper>
         <StateCard>
           <StateIcon $bg="linear-gradient(135deg,#EF4444,#F87171)" $shadow="0 8px 24px rgba(239,68,68,0.3)">❌</StateIcon>
-          <StateTitle>Error al cargar</StateTitle>
+          <StateTitle>{t('survey.errorTitle')}</StateTitle>
           <StateMessage>{error}</StateMessage>
-          <HomeButton onClick={() => window.location.reload()}>🔄 Intentar de nuevo</HomeButton>
+          <HomeButton onClick={() => window.location.reload()}>{t('survey.retry')}</HomeButton>
         </StateCard>
       </StatePageWrapper>
     );
@@ -100,9 +102,9 @@ const Survey = () => {
       <StatePageWrapper>
         <StateCard>
           <StateIcon $bg="linear-gradient(135deg,#94A3B8,#CBD5E1)" $shadow="0 8px 24px rgba(148,163,184,0.3)">🔍</StateIcon>
-          <StateTitle>Encuesta no encontrada</StateTitle>
-          <StateMessage>La encuesta puede haber expirado o el enlace es incorrecto.</StateMessage>
-          <HomeButton onClick={() => navigate('/')}>🏠 Ir al inicio</HomeButton>
+          <StateTitle>{t('survey.notFoundTitle')}</StateTitle>
+          <StateMessage>{t('survey.notFoundMessage')}</StateMessage>
+          <HomeButton onClick={() => navigate('/')}>{t('survey.goHome')}</HomeButton>
         </StateCard>
       </StatePageWrapper>
     );
@@ -113,9 +115,9 @@ const Survey = () => {
       <StatePageWrapper>
         <StateCard>
           <StateIcon $bg="linear-gradient(135deg,#5B4FE9,#7C3AED)" $shadow="0 8px 24px rgba(91,79,233,0.3)">🔐</StateIcon>
-          <StateTitle>Autenticación requerida</StateTitle>
-          <StateMessage>Debes iniciar sesión para responder esta encuesta.</StateMessage>
-          <HomeButton onClick={() => navigate('/login')}>→ Iniciar sesión</HomeButton>
+          <StateTitle>{t('survey.authRequiredTitle')}</StateTitle>
+          <StateMessage>{t('survey.authRequiredMessage')}</StateMessage>
+          <HomeButton onClick={() => navigate('/login')}>{t('survey.goLogin')}</HomeButton>
         </StateCard>
       </StatePageWrapper>
     );
@@ -131,12 +133,13 @@ const Survey = () => {
       <StatePageWrapper>
         <StateCard>
           <StateIcon $bg="linear-gradient(135deg,#F59E0B,#FCD34D)" $shadow="0 8px 24px rgba(245,158,11,0.3)">⏰</StateIcon>
-          <StateTitle>Encuesta expirada</StateTitle>
+          <StateTitle>{t('survey.expiredTitle')}</StateTitle>
           <StateMessage>
-            Esta encuesta expiró el{' '}
-            {expirationTime.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}.
+            {t('survey.expiredMessage', {
+              date: expirationTime.toLocaleDateString(language === 'pt-BR' ? 'pt-BR' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' }),
+            })}
           </StateMessage>
-          <HomeButton onClick={() => navigate('/')}>🏠 Ir al inicio</HomeButton>
+          <HomeButton onClick={() => navigate('/')}>{t('survey.goHome')}</HomeButton>
         </StateCard>
       </StatePageWrapper>
     );

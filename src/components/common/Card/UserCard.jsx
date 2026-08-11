@@ -5,6 +5,7 @@ import {
   FaGraduationCap, FaWallet, FaUserEdit 
 } from 'react-icons/fa';
 import styled from 'styled-components';
+import { useTranslation } from '../../../i18n/LanguageContext';
 
 const UserCardContainer = styled.div`
   background: white;
@@ -73,111 +74,113 @@ const InfoBadge = styled(Badge)`
   color: white;
 `;
 
-const formatDate = (dateString) => {
-  if (!dateString) return 'No disponible';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('es-ES');
-};
-
 function UserCard({ user }) {
+  const { t, language } = useTranslation();
+
+  const formatDate = (dateString) => {
+    if (!dateString) return t('userCard.notAvailable');
+    const date = new Date(dateString);
+    return date.toLocaleDateString(language === 'pt-BR' ? 'pt-BR' : 'es-ES');
+  };
+
   return (
     <UserCardContainer 
       isAdmin={user.role === 'admin'}
       isConfirmed={user.isConfirmed}
     >
       <CardRow>
-        <CardLabel><FaUserShield /> ID:</CardLabel>
+        <CardLabel><FaUserShield /> {t('userCard.id')}</CardLabel>
         <CardValue>{user.id}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaUserShield /> Nombre:</CardLabel>
+        <CardLabel><FaUserShield /> {t('userCard.name')}</CardLabel>
         <CardValue>
           {`${user.firstName} ${user.lastName}`}
           {user.role === 'admin' ? (
-            <DangerBadge><FaUserShield /> Admin</DangerBadge>
+            <DangerBadge><FaUserShield /> {t('userCard.admin')}</DangerBadge>
           ) : (
             <InfoBadge><FaUserShield /> {user.role}</InfoBadge>
           )}
         </CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaEnvelope /> Email:</CardLabel>
+        <CardLabel><FaEnvelope /> {t('userCard.email')}</CardLabel>
         <CardValue>{user.email}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaCheckCircle /> Estado:</CardLabel>
+        <CardLabel><FaCheckCircle /> {t('userCard.status')}</CardLabel>
         <CardValue>
           {user.isConfirmed ? (
-            <SuccessBadge><FaCheckCircle /> Confirmado</SuccessBadge>
+            <SuccessBadge><FaCheckCircle /> {t('userCard.confirmed')}</SuccessBadge>
           ) : (
-            <WarningBadge><FaTimesCircle /> No confirmado</WarningBadge>
+            <WarningBadge><FaTimesCircle /> {t('userCard.unconfirmed')}</WarningBadge>
           )}
         </CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaCalendarAlt /> Registro:</CardLabel>
+        <CardLabel><FaCalendarAlt /> {t('userCard.registered')}</CardLabel>
         <CardValue>{formatDate(user.createdAt)}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaVenusMars /> Género:</CardLabel>
-        <CardValue>{user.gender || 'No especificado'}</CardValue>
+        <CardLabel><FaVenusMars /> {t('userCard.gender')}</CardLabel>
+        <CardValue>{user.gender || t('userCard.unspecified')}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaBirthdayCake /> Edad:</CardLabel>
+        <CardLabel><FaBirthdayCake /> {t('userCard.age')}</CardLabel>
         <CardValue>{user.age || '--'}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaPhone /> Teléfono:</CardLabel>
+        <CardLabel><FaPhone /> {t('userCard.phone')}</CardLabel>
         <CardValue>{user.phone_number || '--'}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaCity /> Ciudad:</CardLabel>
+        <CardLabel><FaCity /> {t('userCard.city')}</CardLabel>
         <CardValue>{user.city || '--'}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaHome /> Barrio:</CardLabel>
+        <CardLabel><FaHome /> {t('userCard.neighborhood')}</CardLabel>
         <CardValue>{user.residentialArea || '--'}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaShoppingCart /> Responsabilidad:</CardLabel>
+        <CardLabel><FaShoppingCart /> {t('userCard.responsibility')}</CardLabel>
         <CardValue>{user.purchaseResponsibility || '--'}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaBaby /> Hijos:</CardLabel>
+        <CardLabel><FaBaby /> {t('userCard.children')}</CardLabel>
         <CardValue>
           {user.childrenCount || '0'}
           {user.childrenAges && user.childrenAges.length > 0 && (
-            <span> (Edades: {user.childrenAges.join(', ')})</span>
+            <span> ({t('userCard.ages', { ages: user.childrenAges.join(', ') })})</span>
           )}
         </CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaGraduationCap /> Educación:</CardLabel>
+        <CardLabel><FaGraduationCap /> {t('userCard.education')}</CardLabel>
         <CardValue>{user.educationLevel || '--'}</CardValue>
       </CardRow>
-      
+
       <CardRow>
-        <CardLabel><FaWallet /> Saldo:</CardLabel>
+        <CardLabel><FaWallet /> {t('userCard.balance')}</CardLabel>
         <CardValue>
           <SuccessBadge>€{user.walletBalance?.toFixed(2) || '0.00'}</SuccessBadge>
         </CardValue>
       </CardRow>
-      
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'flex-end', 
+
+      <div style={{
+        display: 'flex',
+        justifyContent: 'flex-end',
         marginTop: '0.5rem'
       }}>
         <button style={{
@@ -191,7 +194,7 @@ function UserCard({ user }) {
           borderRadius: '6px',
           cursor: 'pointer'
         }}>
-          <FaUserEdit /> Editar
+          <FaUserEdit /> {t('userCard.edit')}
         </button>
       </div>
     </UserCardContainer>

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const Overlay = styled(motion.div)`
   position: fixed;
@@ -33,6 +34,7 @@ const WhatsappIcon = styled.div`
 `;
 
 const LoginSuccessModal = () => {
+  const { t } = useTranslation();
   return (
     <Overlay
       initial={{ opacity: 0 }}
@@ -48,8 +50,8 @@ const LoginSuccessModal = () => {
         <WhatsappIcon>
           <i className="fab fa-whatsapp"></i>
         </WhatsappIcon>
-        <h3>¡Cuenta reconocida con éxito!</h3>
-        <p>Pronto recibirás encuestas por WhatsApp.</p>
+        <h3>{t('loginSuccessModal.title')}</h3>
+        <p>{t('loginSuccessModal.message')}</p>
       </Box>
     </Overlay>
   );

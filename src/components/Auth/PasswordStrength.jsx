@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Container for the strength bar (the background bar)
 const StrengthBarContainer = styled.div`
@@ -38,6 +39,7 @@ const Requirement = styled.p`
 
 // The PasswordStrength component that shows password strength bar and requirements
 const PasswordStrength = ({ password }) => {
+  const { t } = useTranslation();
   // Check if the password has letters, numbers, special characters, and is long enough
   const hasLetters = /[a-zA-Z]/.test(password);
   const hasNumbers = /\d/.test(password);
@@ -61,16 +63,16 @@ const PasswordStrength = ({ password }) => {
       {/* List of password requirements */}
       <PasswordRequirements>
         <Requirement $valid={isLongEnough}>
-          {isLongEnough ? '✓ ' : '✗ '}Mínimo 8 caracteres
+          {isLongEnough ? '✓ ' : '✗ '}{t('register.passwordStrength.minChars')}
         </Requirement>
         <Requirement $valid={hasLetters}>
-          {hasLetters ? '✓ ' : '✗ '}Incluir letras
+          {hasLetters ? '✓ ' : '✗ '}{t('register.passwordStrength.requireLetters')}
         </Requirement>
         <Requirement $valid={hasNumbers}>
-          {hasNumbers ? '✓ ' : '✗ '}Incluir letras
+          {hasNumbers ? '✓ ' : '✗ '}{t('register.passwordStrength.requireNumbers')}
         </Requirement>
         <Requirement $valid={hasSpecialChars}>
-          {hasSpecialChars ? '✓ ' : '✗ '}Incluir caracteres especiales (!@#$%^&*)
+          {hasSpecialChars ? '✓ ' : '✗ '}{t('register.passwordStrength.requireSpecial')}
         </Requirement>
       </PasswordRequirements>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const TEXT_LIMITS = {
   short:        { min: 1,  max: 100 },
@@ -8,10 +9,11 @@ const TEXT_LIMITS = {
 };
 
 export const useSurveyQuestionHandlers = (question, response, onResponseChange) => {
+  const { t } = useTranslation();
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
 
   const hasOtherOption   = question.otherOption === true;
-  const otherOptionText  = question.otherOptionText || 'Otro (especificar)';
+  const otherOptionText  = question.otherOptionText || t('surveyQuestion.defaultOtherOptionText');
 
   const isMultipleSelection = useCallback(() => {
     const v = question.multipleSelections;
@@ -45,13 +47,13 @@ export const useSurveyQuestionHandlers = (question, response, onResponseChange) 
 
   const getLengthLabel = useCallback(() => {
     const map = {
-      short: '🔹 Resposta curta (1–100 caracteres)',
-      medium:'🔸 Resposta média (10–300 caracteres)',
-      long:  '🔷 Resposta longa (50–1000 caracteres)',
+      short: t('surveyQuestion.lengthShort'),
+      medium: t('surveyQuestion.lengthMedium'),
+      long: t('surveyQuestion.lengthLong'),
     };
     const key = (question.answerLength || '').toLowerCase().trim();
-    return map[key] || '∞ Sem limite de caracteres';
-  }, [question.answerLength]);
+    return map[key] || t('surveyQuestion.lengthUnrestricted');
+  }, [question.answerLength, t]);
 
   // Atualiza texto livre
   const handleTextChange = useCallback(

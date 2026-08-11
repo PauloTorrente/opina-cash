@@ -1,5 +1,6 @@
 import styled, { keyframes } from 'styled-components';
 import { FaTimes } from 'react-icons/fa';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Local animation fallback
 const localFadeIn = keyframes`
@@ -38,14 +39,15 @@ const ClearButton = styled.button`
 `;
 
 const ResultsHeader = ({ filteredCount, totalCount, hasActiveFilters, onClear }) => {
+  const { t } = useTranslation();
   return (
     <HeaderContainer>
       <p style={{ margin: 0 }}>
-        Mostrando <strong>{filteredCount}</strong> de <strong>{totalCount}</strong> usuários
+        {t('resultsHeader.showingBefore')} <strong>{filteredCount}</strong> {t('resultsHeader.showingMiddle')} <strong>{totalCount}</strong> {t('resultsHeader.showingAfter')}
       </p>
       {hasActiveFilters && (
         <ClearButton onClick={onClear}>
-          <FaTimes /> Limpar filtros
+          <FaTimes /> {t('resultsHeader.clearFilters')}
         </ClearButton>
       )}
     </HeaderContainer>

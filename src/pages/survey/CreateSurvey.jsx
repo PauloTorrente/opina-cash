@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import CreateSurveyForm from '../../components/survey/CreateSurveyForm';
 import SurveyCreatedSuccess from '../../components/survey/SurveyCreatedSuccess';
 import AuthContext from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const CreateSurvey = () => {
+  const { t } = useTranslation();
   const { user, authFetch } = useContext(AuthContext);
   const navigate = useNavigate();
   const [createdSurvey, setCreatedSurvey] = useState(null);
@@ -24,7 +26,7 @@ const CreateSurvey = () => {
       setCreatedSurvey(response.data); // Armazena os dados da enquete criada (incluindo accessToken)
     } catch (error) {
       console.error('Error creando encuesta:', error);
-      alert('Error al crear encuesta. Por favor, intente de nuevo.');
+      alert(t('createSurvey.submitError'));
     }
   };
 
@@ -34,7 +36,7 @@ const CreateSurvey = () => {
         <SurveyCreatedSuccess survey={createdSurvey} accessToken={createdSurvey.accessToken} />
       ) : (
         <>
-          <h1>Crear Encuesta</h1>
+          <h1>{t('createSurvey.title')}</h1>
           <CreateSurveyForm onSubmit={handleSubmit} />
         </>
       )}

@@ -4,6 +4,7 @@ import AuthContext from '../../context/AuthContext';
 import styled, { keyframes, css } from 'styled-components';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // ─── Tokens ───────────────────────────────────────────────────────────────────
 const C = {
@@ -442,96 +443,98 @@ const SkeletonCard = styled(SkeletonBase)`
 `;
 
 // ─── Field definitions ────────────────────────────────────────────────────────
-const SECTIONS = [
+// Field labels/placeholders come from `t`, but option `value`s stay fixed —
+// they're the enums stored on the backend, matching FilterPanel's approach.
+const getSections = (t) => [
   {
-    title: 'Datos personales',
+    title: t('profile.sections.personal.title'),
     fields: [
-      { name: 'firstName',  label: 'Nombre',   type: 'text',   required: true, placeholder: 'Tu nombre' },
-      { name: 'lastName',   label: 'Apellido',  type: 'text',   required: true, placeholder: 'Tu apellido' },
-      { name: 'gender',     label: 'Sexo',      type: 'select', required: true,
+      { name: 'firstName',  label: t('profile.sections.personal.firstNameLabel'),   type: 'text',   required: true, placeholder: t('profile.sections.personal.firstNamePlaceholder') },
+      { name: 'lastName',   label: t('profile.sections.personal.lastNameLabel'),  type: 'text',   required: true, placeholder: t('profile.sections.personal.lastNamePlaceholder') },
+      { name: 'gender',     label: t('profile.sections.personal.genderLabel'),      type: 'select', required: true,
         options: [
-          { value: '', label: 'Selecciona tu sexo' },
-          { value: 'Masculino',         label: 'Masculino' },
-          { value: 'Femenino',          label: 'Femenino' },
-          { value: 'Otro',              label: 'Otro' },
-          { value: 'Prefiero no decir', label: 'Prefiero no decir' },
+          { value: '', label: t('profile.sections.personal.genderPlaceholder') },
+          { value: 'Masculino',         label: t('filterPanel.genderMale') },
+          { value: 'Femenino',          label: t('filterPanel.genderFemale') },
+          { value: 'Otro',              label: t('filterPanel.genderOther') },
+          { value: 'Prefiero no decir', label: t('filterPanel.genderPreferNotToSay') },
         ]},
-      { name: 'age', label: 'Edad', type: 'number', required: true, placeholder: 'Ej: 28' },
+      { name: 'age', label: t('profile.sections.personal.ageLabel'), type: 'number', required: true, placeholder: t('profile.sections.personal.agePlaceholder') },
     ],
   },
   {
-    title: 'Contacto y ubicación',
+    title: t('profile.sections.contact.title'),
     fields: [
-      { name: 'phone_number',    label: 'Teléfono',           type: 'phone',  required: true },
-      { name: 'city',            label: 'Ciudad',             type: 'text',   required: true, placeholder: 'Tu ciudad' },
-      { name: 'residentialArea', label: 'Zona de residencia', type: 'text',   required: true, placeholder: 'Ej: Norte, Centro…' },
+      { name: 'phone_number',    label: t('profile.sections.contact.phoneLabel'),           type: 'phone',  required: true },
+      { name: 'city',            label: t('profile.sections.contact.cityLabel'),             type: 'text',   required: true, placeholder: t('profile.sections.contact.cityPlaceholder') },
+      { name: 'residentialArea', label: t('profile.sections.contact.residentialAreaLabel'), type: 'text',   required: true, placeholder: t('profile.sections.contact.residentialAreaPlaceholder') },
     ],
   },
   {
-    title: 'Perfil del hogar',
+    title: t('profile.sections.household.title'),
     fields: [
       { name: 'purchaseResponsibility',
-        label: '¿Responsable de compras del hogar?',
+        label: t('profile.sections.household.purchaseResponsibilityLabel'),
         type: 'select', required: true,
         options: [
-          { value: '',             label: 'Selecciona una opción' },
-          { value: 'Sí',           label: 'Sí' },
-          { value: 'Parcialmente', label: 'Parcialmente' },
-          { value: 'No',           label: 'No' },
+          { value: '',             label: t('profile.sections.household.selectOptionPlaceholder') },
+          { value: 'Sí',           label: t('filterPanel.yes') },
+          { value: 'Parcialmente', label: t('filterPanel.partially') },
+          { value: 'No',           label: t('filterPanel.no') },
         ]},
       { name: 'educationLevel',
-        label: 'Nivel educativo',
+        label: t('profile.sections.household.educationLevelLabel'),
         type: 'select', required: true,
         options: [
-          { value: '',           label: 'Selecciona tu nivel' },
-          { value: 'Primaria',   label: 'Primaria' },
-          { value: 'Secundaria', label: 'Secundaria' },
-          { value: 'Universidad',label: 'Universidad' },
-          { value: 'Posgrado',   label: 'Posgrado' },
-          { value: 'Otro',       label: 'Otro' },
+          { value: '',           label: t('profile.sections.household.educationLevelPlaceholder') },
+          { value: 'Primaria',   label: t('filterPanel.educationPrimary') },
+          { value: 'Secundaria', label: t('filterPanel.educationSecondary') },
+          { value: 'Universidad',label: t('filterPanel.educationUniversity') },
+          { value: 'Posgrado',   label: t('filterPanel.educationPostgraduate') },
+          { value: 'Otro',       label: t('filterPanel.educationOther') },
         ]},
       { name: 'children',
-        label: '¿Tienes hijos?',
+        label: t('profile.sections.household.hasChildrenLabel'),
         type: 'select', required: true,
         options: [
-          { value: '', label: 'Selecciona una opción' },
-          { value: 'Sí', label: 'Sí' },
-          { value: 'No', label: 'No' },
+          { value: '', label: t('profile.sections.household.selectOptionPlaceholder') },
+          { value: 'Sí', label: t('filterPanel.yes') },
+          { value: 'No', label: t('filterPanel.no') },
         ]},
     ],
   },
 ];
 
-const CHILDREN_FIELDS = [
-  { name: 'children_count', label: '¿Cuántos hijos tienes?',          type: 'number', placeholder: 'Ej: 2',         required: true },
-  { name: 'children_ages',  label: 'Edades de tus hijos (separadas por coma)', type: 'text', placeholder: 'Ej: 5, 8, 12', required: true },
+const getChildrenFields = (t) => [
+  { name: 'children_count', label: t('profile.childrenSection.countLabel'),          type: 'number', placeholder: t('profile.childrenSection.countPlaceholder'),         required: true },
+  { name: 'children_ages',  label: t('profile.childrenSection.agesLabel'), type: 'text', placeholder: t('profile.childrenSection.agesPlaceholder'), required: true },
 ];
 
 // ─── Validation ───────────────────────────────────────────────────────────────
-const validate = (form, hasChildren) => {
+const validate = (form, hasChildren, sections, childrenFields, t) => {
   const errors = {};
-  const allFields = SECTIONS.flatMap(s => s.fields);
+  const allFields = sections.flatMap(s => s.fields);
   allFields.forEach(({ name, required }) => {
     if (!required) return;
     const v = form[name];
-    if (!v || (typeof v === 'string' && !v.trim())) errors[name] = 'Campo requerido';
+    if (!v || (typeof v === 'string' && !v.trim())) errors[name] = t('profile.requiredField');
   });
   if (hasChildren) {
-    CHILDREN_FIELDS.forEach(({ name }) => {
+    childrenFields.forEach(({ name }) => {
       const v = form[name];
-      if (!v || (typeof v === 'string' && !v.trim())) errors[name] = 'Campo requerido';
+      if (!v || (typeof v === 'string' && !v.trim())) errors[name] = t('profile.requiredField');
     });
   }
   return errors;
 };
 
-const allRequired = (form, hasChildren) =>
-  Object.keys(validate(form, hasChildren)).length === 0;
+const allRequired = (form, hasChildren, sections, childrenFields, t) =>
+  Object.keys(validate(form, hasChildren, sections, childrenFields, t)).length === 0;
 
-const progressPct = (form, hasChildren) => {
+const progressPct = (form, hasChildren, sections, childrenFields) => {
   const allFields = [
-    ...SECTIONS.flatMap(s => s.fields).filter(f => f.required),
-    ...(hasChildren ? CHILDREN_FIELDS : []),
+    ...sections.flatMap(s => s.fields).filter(f => f.required),
+    ...(hasChildren ? childrenFields : []),
   ];
   const filled = allFields.filter(({ name }) => {
     const v = form[name];
@@ -542,6 +545,9 @@ const progressPct = (form, hasChildren) => {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function Profile() {
+  const { t } = useTranslation();
+  const SECTIONS = getSections(t);
+  const CHILDREN_FIELDS = getChildrenFields(t);
   const { authFetch, user } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -572,7 +578,7 @@ export default function Profile() {
 
   // Recalcula erros sempre que form ou hasChildren mudam
   useEffect(() => {
-    if (form) setErrors(validate(form, hasChildren));
+    if (form) setErrors(validate(form, hasChildren, SECTIONS, CHILDREN_FIELDS, t));
   }, [form, hasChildren]);
 
   const handleChange = useCallback((e) => {
@@ -599,7 +605,7 @@ export default function Profile() {
     ];
     setTouched(Object.fromEntries(allNames.map(n => [n, true])));
 
-    const currentErrors = validate(form, hasChildren);
+    const currentErrors = validate(form, hasChildren, SECTIONS, CHILDREN_FIELDS, t);
     if (Object.keys(currentErrors).length > 0) {
       // Scroll ao primeiro campo com erro
       const first = Object.keys(currentErrors)[0];
@@ -622,7 +628,7 @@ export default function Profile() {
       setShowModal(true);
     } catch (e) {
       console.error('Error saving profile:', e);
-      setSaveError('Error al guardar. Inténtalo de nuevo.');
+      setSaveError(t('profile.saveError'));
     } finally {
       setSaving(false);
     }
@@ -638,14 +644,14 @@ export default function Profile() {
     </Page>
   );
 
-  const pct      = progressPct(form, hasChildren);
-  const isValid  = allRequired(form, hasChildren);
+  const pct      = progressPct(form, hasChildren, SECTIONS, CHILDREN_FIELDS);
+  const isValid  = allRequired(form, hasChildren, SECTIONS, CHILDREN_FIELDS, t);
   const initials = `${form.firstName?.[0] || ''}${form.lastName?.[0] || ''}`.toUpperCase() || '👤';
 
-  const pctMsg = pct === 100 ? '¡Perfil completo! 🎉'
-    : pct > 70 ? '¡Casi listo! 💪'
-    : pct > 40 ? '¡Vas muy bien! 🙌'
-    : '¡Empecemos! 😄';
+  const pctMsg = pct === 100 ? t('profile.pctMsgComplete')
+    : pct > 70 ? t('profile.pctMsgAlmost')
+    : pct > 40 ? t('profile.pctMsgGood')
+    : t('profile.pctMsgStart');
 
   // ── Render field ───────────────────────────────────────────────────────────
   const renderField = (field) => {
@@ -668,7 +674,7 @@ export default function Profile() {
                 value={value}
                 onChange={handlePhone}
                 onBlur={() => handleBlur(name)}
-                placeholder="+1 (555) 000-0000"
+                placeholder={t('profile.phonePlaceholder')}
               />
             </PhoneWrap>
           ) : type === 'select' ? (
@@ -711,10 +717,10 @@ export default function Profile() {
           <Avatar>{initials}</Avatar>
         </AvatarWrap>
         <HeroName>
-          {form.firstName ? `${form.firstName} ${form.lastName || ''}`.trim() : 'Tu perfil'}
+          {form.firstName ? `${form.firstName} ${form.lastName || ''}`.trim() : t('profile.defaultName')}
         </HeroName>
         <HeroSub>
-          {form.email || 'Completa tu información para recibir más encuestas'}
+          {form.email || t('profile.defaultSub')}
         </HeroSub>
       </Hero>
 
@@ -741,7 +747,7 @@ export default function Profile() {
         {/* Campos de hijos condicionales */}
         {hasChildren && (
           <>
-            <SectionTitle>Información sobre tus hijos</SectionTitle>
+            <SectionTitle>{t('profile.childrenSection.title')}</SectionTitle>
             {CHILDREN_FIELDS.map(renderField)}
           </>
         )}
@@ -755,7 +761,7 @@ export default function Profile() {
           </p>
         )}
         <SubmitBtn $valid={isValid && !saving} onClick={handleSubmit} disabled={saving}>
-          {saving ? <><Spinner />Guardando…</> : isValid ? '✓ Guardar cambios' : 'Completa los campos requeridos'}
+          {saving ? <><Spinner />{t('profile.savingButton')}</> : isValid ? t('profile.saveButton') : t('profile.incompleteButton')}
         </SubmitBtn>
       </SubmitWrap>
 
@@ -764,12 +770,12 @@ export default function Profile() {
         <Overlay>
           <ModalCard>
             <ModalEmoji>🎉</ModalEmoji>
-            <ModalTitle>¡Perfil actualizado!</ModalTitle>
+            <ModalTitle>{t('profile.modalTitle')}</ModalTitle>
             <ModalText>
-              Tu información fue guardada correctamente. Recibirás encuestas adaptadas a tu perfil.
+              {t('profile.modalText')}
             </ModalText>
             <ModalBtn onClick={() => { setShowModal(false); navigate('/'); }}>
-              Ir al inicio
+              {t('profile.modalButton')}
             </ModalBtn>
           </ModalCard>
         </Overlay>

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FaTimes } from 'react-icons/fa';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const NoResultsContainer = styled.div`
   background: white;
@@ -35,13 +36,14 @@ const ClearButton = styled.button`
 `;
 
 function NoResults({ hasActiveFilters, onClear }) {
+  const { t } = useTranslation();
   return (
     <NoResultsContainer>
-      <Message>No se encontraron usuarios que coincidan con tus filtros</Message>
+      <Message>{t('noResults.message')}</Message>
       {hasActiveFilters && (
         <ClearButton onClick={onClear}>
           <FaTimes />
-          Limpiar filtros
+          {t('noResults.clearFilters')}
         </ClearButton>
       )}
     </NoResultsContainer>

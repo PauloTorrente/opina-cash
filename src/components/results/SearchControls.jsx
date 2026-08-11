@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import { FaFilter } from 'react-icons/fa';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 export const ControlsContainer = styled.div`
   display: flex;
@@ -47,19 +48,20 @@ export const FilterButton = styled.button`
 `;
 
 const SearchControls = ({ searchTerm, setSearchTerm, onFilterToggle, isFilterActive }) => {
+  const { t } = useTranslation();
   return (
     <ControlsContainer>
-      <SearchInput 
-        type="text" 
-        placeholder="Buscar por nome, email ou cidade..." 
+      <SearchInput
+        type="text"
+        placeholder={t('searchControls.searchPlaceholder')}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <FilterButton 
+      <FilterButton
         onClick={onFilterToggle}
         active={isFilterActive}
       >
-        <FaFilter /> {isFilterActive ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+        <FaFilter /> {isFilterActive ? t('searchControls.hideFilters') : t('searchControls.showFilters')}
       </FilterButton>
     </ControlsContainer>
   );

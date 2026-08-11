@@ -8,8 +8,10 @@ import SearchControls from '../../components/results/SearchControls';
 import ContentSwitcher from '../../components/common/ContentSwitcher';
 import UsersFilter from '../../components/results/UsersFilter';
 import HtmlDownloader from '../../utils/HtmlDownloader';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 function Dashboard() {
+  const { t, language } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,7 +38,7 @@ function Dashboard() {
         const response = await authFetch('/users');
         setUsers(response.data);
       } catch (err) {
-        setError(err.response?.data?.message || '¡Ups! Algo salió mal al cargar los usuarios');
+        setError(err.response?.data?.message || t('dashboard.loadUsersError'));
         console.error('Error fetching users:', err);
       } finally {
         setLoading(false);
@@ -90,11 +92,11 @@ function Dashboard() {
     // Adiciona metadados e estilos básicos
     return `
       <!DOCTYPE html>
-      <html lang="pt-BR">
+      <html lang="${language}">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Relatório do Dashboard - ${new Date().toLocaleDateString()}</title>
+        <title>${t('dashboard.report.title')} - ${new Date().toLocaleDateString()}</title>
         <style>
           body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
           .container { max-width: 1200px; margin: 0 auto; }
@@ -109,16 +111,16 @@ function Dashboard() {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Relatório de Usuários</h1>
+            <h1>${t('dashboard.report.usersTitle')}</h1>
             <div class="filters-info">
-              <strong>Filtros aplicados:</strong> 
-              ${hasActiveFilters ? Object.entries(filters).filter(([_, v]) => v).map(([k, v]) => `${k}: ${v}`).join(', ') : 'Nenhum'}
-              ${searchTerm ? `, Pesquisa: "${searchTerm}"` : ''}
+              <strong>${t('dashboard.report.appliedFilters')}</strong>
+              ${hasActiveFilters ? Object.entries(filters).filter(([_, v]) => v).map(([k, v]) => `${k}: ${v}`).join(', ') : t('dashboard.report.none')}
+              ${searchTerm ? `, ${t('dashboard.report.search')}: "${searchTerm}"` : ''}
             </div>
           </div>
           ${clone.innerHTML}
           <div class="timestamp">
-            Gerado em: ${new Date().toLocaleString()}
+            ${t('dashboard.report.generatedOn')} ${new Date().toLocaleString()}
           </div>
         </div>
       </body>

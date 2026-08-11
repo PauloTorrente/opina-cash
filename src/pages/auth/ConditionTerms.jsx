@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const TermsContainer = styled.div`
   width: 90%;
@@ -118,6 +119,7 @@ const DeclineButton = styled(Button)`
 `;
 
 const ConditionTerms = () => {
+  const { t } = useTranslation();
   const [accepted, setAccepted] = useState(false);
   const navigate = useNavigate();
 
@@ -127,46 +129,46 @@ const ConditionTerms = () => {
   };
 
   const handleDecline = () => {
-    alert("Debe aceptar los términos y condiciones para utilizar la aplicación.");
+    alert(t('terms.declineAlert'));
   };
 
   return (
     <TermsContainer>
-      <Title>TÉRMINOS Y CONDICIONES</Title>
-      
+      <Title>{t('terms.title')}</Title>
+
       <TermsContent>
         <TermsText>
-          <strong>Acuerdo de Usuario</strong> ("Acuerdo") regula su acceso y uso de OpinaCash ("la Aplicación"), una plataforma diseñada para reclutar y encuestar a individuos para participar en encuestas y recibir pagos por sus respuestas. Al crear una cuenta, acceder o usar la Aplicación, usted acepta cumplir con los términos y condiciones establecidos en este Acuerdo. Si no está de acuerdo, no debe usar la Aplicación.
+          <strong>{t('terms.agreementLabel')}</strong> {t('terms.intro')}
           <br /><br />
-          
-          <strong>Aceptación de los Términos</strong>
+
+          <strong>{t('terms.section1.heading')}</strong>
           <br />
-          1.1. Al registrarse en la Aplicación, usted confirma que tiene al menos 18 años (o la mayoría de edad en su jurisdicción) y que tiene la capacidad legal para aceptar este Acuerdo.
+          {t('terms.section1.p1')}
           <br />
-          1.2. Usted se compromete a proporcionar información precisa, actual y completa durante el proceso de registro y a actualizar dicha información según sea necesario para garantizar su precisión.
+          {t('terms.section1.p2')}
           <br /><br />
-          
-          <strong>Recolección y Uso de Información Personal</strong>
+
+          <strong>{t('terms.section2.heading')}</strong>
           <br />
-          2.1. Para participar en encuestas, debe proporcionar cierta información demográfica, que puede incluir, entre otros, edad, género, ubicación, nivel de ingresos y estado laboral.
+          {t('terms.section2.p1')}
           <br />
-          2.2. Toda la información personal que proporcione será recolectada, procesada y almacenada de acuerdo con nuestra Política de Privacidad. Al usar la Aplicación, usted consiente la recolección y uso de sus datos personales con fines como asignar encuestas relevantes y procesar pagos.
+          {t('terms.section2.p2')}
           <br /><br />
-          
-          <strong>Participación en Encuestas</strong>
+
+          <strong>{t('terms.section3.heading')}</strong>
           <br />
-          3.1. La Aplicación presentará encuestas adaptadas a su información demográfica. La participación es voluntaria, y usted puede rechazar o omitir encuestas a su discreción.
+          {t('terms.section3.p1')}
           <br />
-          3.2. Al enviar sus respuestas, acepta que estas serán evaluadas mediante <Highlight>un sistema de control de calidad</Highlight> para determinar su puntuación. El desempeño en cada encuesta influirá directamente en la cantidad y frecuencia de encuestas futuras asignadas. Las respuestas completas y de calidad incrementarán sus oportunidades de participación. En caso contrario, podrían disminuir o cesar. Cada respuesta será <Highlight>evaluada individualmente</Highlight> según criterios de relevancia y exhaustividad.
+          {t('terms.section3.p2Before')}<Highlight>{t('terms.section3.p2Highlight1')}</Highlight>{t('terms.section3.p2Middle')}<Highlight>{t('terms.section3.p2Highlight2')}</Highlight>{t('terms.section3.p2After')}
         </TermsText>
       </TermsContent>
 
       <ButtonContainer>
         <DeclineButton onClick={handleDecline}>
-          Rechazar
+          {t('terms.decline')}
         </DeclineButton>
         <AcceptButton onClick={handleAccept}>
-          Aceptar Términos
+          {t('terms.accept')}
         </AcceptButton>
       </ButtonContainer>
     </TermsContainer>

@@ -2,6 +2,7 @@ import React from 'react'; // Import React for creating the component
 import styled from 'styled-components'; // Import styled-components for styling
 import { motion } from 'framer-motion'; // Import motion from framer-motion for animations
 import { Link } from 'react-router-dom'; // Import Link from React Router for navigation
+import { useTranslation } from '../../../i18n/LanguageContext';
 
 // Styled component for the card wrapper
 const Card = styled(motion.div)`
@@ -44,6 +45,7 @@ const Meta = styled.div`
 
 // SurveyCard component that displays survey details
 const SurveyCard = ({ survey }) => {
+  const { t } = useTranslation();
   return (
     // Link component to navigate to the results page when clicked
     <Link to={`/results/${survey.id}`} style={{ textDecoration: 'none' }}>
@@ -54,7 +56,7 @@ const SurveyCard = ({ survey }) => {
         <Title>{survey.title}</Title> {/* Display survey title */}
         <Description>{survey.description}</Description> {/* Display survey description */}
         <Meta>
-          <span>Expira em: {new Date(survey.expirationTime).toLocaleDateString()}</span> {/* Display expiration date */}
+          <span>{t('surveyCard.expiresOn', { date: new Date(survey.expirationTime).toLocaleDateString() })}</span> {/* Display expiration date */}
         </Meta>
       </Card>
     </Link>

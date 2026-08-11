@@ -121,6 +121,28 @@ export const NavLink = styled.a`
   }
 `;
 
+export const LanguageSwitcher = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+`;
+
+export const LanguageOption = styled.button`
+  background-color: ${({ $active }) => ($active ? 'white' : 'transparent')};
+  color: ${({ $active }) => ($active ? '#6c63ff' : 'white')};
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: ${({ $active }) => ($active ? 'bold' : 'normal')};
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: ${({ $active }) => ($active ? 'white' : 'rgba(255, 255, 255, 0.15)')};
+  }
+`;
+
 export const LogoutButton = styled.button`
   background-color: #f7b7a3;
   color: white;

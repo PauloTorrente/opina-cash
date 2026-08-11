@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Styled container for the filter options, using flexbox to align items
 const FiltersContainer = styled.div`
@@ -18,6 +19,7 @@ const Select = styled.select`
 
 // Filters component to handle the filter selection
 const Filters = ({ onFilterChange }) => {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState('all'); // State to store the current selected filter
 
   // Handle the change in filter selection
@@ -31,11 +33,11 @@ const Filters = ({ onFilterChange }) => {
     <FiltersContainer>
       <Select value={filter} onChange={handleFilterChange}>
         {/* Option for showing all filters */}
-        <option value="all">Todas</option>
+        <option value="all">{t('filters.all')}</option>
         {/* Option for filtering active surveys */}
-        <option value="active">Ativas</option>
+        <option value="active">{t('filters.active')}</option>
         {/* Option for filtering expired surveys */}
-        <option value="expired">Expiradas</option>
+        <option value="expired">{t('filters.expired')}</option>
       </Select>
     </FiltersContainer>
   );

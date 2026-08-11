@@ -3,6 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { loginUser } from '../../services/api.js';
 import InputField from '../../components/common/Input/InputField';
 import AuthContext from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/LanguageContext';
 import styled, { keyframes } from 'styled-components';
 
 // ─── Animations ───────────────────────────────────────────────────────────────
@@ -140,6 +141,7 @@ const Login = () => {
   const location  = useLocation();
   const navigate  = useNavigate();
   const { login } = useContext(AuthContext);
+  const { t } = useTranslation();
 
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error,       setError]       = useState('');
@@ -164,11 +166,11 @@ const Login = () => {
     } catch (err) {
       const msg = err.message || '';
       if (msg.includes('incorrect') || msg.includes('incorrect')) {
-        setError('El correo electrónico o la contraseña son incorrectos.');
+        setError(t('login.errors.incorrectCredentials'));
       } else if (msg.includes('confirm')) {
-        setError('Por favor, confirma tu correo electrónico antes de iniciar sesión.');
+        setError(t('login.errors.unconfirmedEmail'));
       } else {
-        setError('Error al iniciar sesión. Por favor, inténtalo de nuevo más tarde.');
+        setError(t('login.errors.generic'));
       }
     } finally {
       setLoading(false);
@@ -185,16 +187,16 @@ const Login = () => {
           </svg>
         </IconWrap>
 
-        <Heading>Iniciar sesión</Heading>
+        <Heading>{t('login.heading')}</Heading>
 
         <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Label>
-              Correo electrónico
+              {t('login.emailLabel')}
               <InputField
                 type="email"
                 name="email"
-                placeholder="tu@correo.com"
+                placeholder={t('login.emailPlaceholder')}
                 value={credentials.email}
                 onChange={handleChange('email')}
                 required
@@ -203,7 +205,7 @@ const Login = () => {
             </Label>
 
             <Label>
-              Contraseña
+              {t('login.passwordLabel')}
               <InputField
                 type="password"
                 name="password"
@@ -217,18 +219,18 @@ const Login = () => {
           </FieldGroup>
 
           <ForgotLink>
-            <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+            <Link to="/forgot-password">{t('login.forgotPassword')}</Link>
           </ForgotLink>
 
           <SubmitBtn type="submit" disabled={loading}>
-            {loading ? 'Entrando…' : 'Entrar'}
+            {loading ? t('login.submitLoading') : t('login.submit')}
           </SubmitBtn>
         </form>
 
         {error && <ErrorBox>{error}</ErrorBox>}
 
         <Footer>
-          ¿No tienes una cuenta? <Link to="/register">Regístrate aquí</Link>
+          {t('login.noAccount')} <Link to="/register">{t('login.registerHere')}</Link>
         </Footer>
       </Card>
     </Page>

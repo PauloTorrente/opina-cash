@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const PreviewContainer = styled.div`
   margin: 1rem 0;
@@ -43,14 +44,15 @@ const processYoutubeUrl = (url) => {
 };
 
 const MediaPreview = ({ type, url }) => {
-  if (!url) return <PreviewContainer>Ingrese una URL para previsualizar</PreviewContainer>;
+  const { t } = useTranslation();
+  if (!url) return <PreviewContainer>{t('mediaPreview.enterUrl')}</PreviewContainer>;
 
   if (type === 'image') {
     return (
       <PreviewContainer>
-        <ImagePreview 
-          src={url.includes('imgur.com') ? `https://i.imgur.com/${url.split('/').pop().split('.')[0]}.jpg` : url} 
-          alt="Previsualización" 
+        <ImagePreview
+          src={url.includes('imgur.com') ? `https://i.imgur.com/${url.split('/').pop().split('.')[0]}.jpg` : url}
+          alt={t('mediaPreview.imageAlt')}
         />
       </PreviewContainer>
     );
@@ -64,12 +66,12 @@ const MediaPreview = ({ type, url }) => {
           {embedUrl ? (
             <iframe
               src={embedUrl}
-              title="Previsualización de video"
+              title={t('mediaPreview.videoTitle')}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
           ) : (
-            <p>URL de YouTube no válida</p>
+            <p>{t('mediaPreview.invalidYoutubeUrl')}</p>
           )}
         </VideoContainer>
       </PreviewContainer>

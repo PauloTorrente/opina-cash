@@ -4,6 +4,7 @@ import Button from '../../components/common/Button/Button';
 import InputField from '../../components/common/Input/InputField';
 import styled from 'styled-components';
 import { requestPasswordReset } from '../../services/api';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Container principal que se adapta ao dispositivo
 const MainContainer = styled.div`
@@ -127,6 +128,7 @@ const DecorativeIcon = styled.div`
 `;
 
 const ForgotPassword = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -157,9 +159,9 @@ const ForgotPassword = () => {
 
     try {
       const response = await requestPasswordReset(email);
-      setSuccess('Se han enviado las instrucciones para restablecer tu contraseña a tu correo electrónico.');
+      setSuccess(t('forgotPassword.success'));
     } catch (err) {
-      setError(err.message || 'Ocurrió un error. Por favor, inténtalo de nuevo más tarde.');
+      setError(err.message || t('forgotPassword.genericError'));
     } finally {
       setIsLoading(false);
     }
@@ -176,12 +178,12 @@ const ForgotPassword = () => {
           </div>
         </DecorativeIcon>
         
-        <FormTitle isDesktop={isDesktop}>Restablecer Contraseña</FormTitle>
-        
+        <FormTitle isDesktop={isDesktop}>{t('forgotPassword.title')}</FormTitle>
+
         <FormSubtitle isDesktop={isDesktop}>
-          {isDesktop 
-            ? 'Ingresa tu correo electrónico y te enviaremos instrucciones para restablecer tu contraseña.' 
-            : 'Ingresa tu correo para recibir instrucciones de recuperación.'}
+          {isDesktop
+            ? t('forgotPassword.subtitleDesktop')
+            : t('forgotPassword.subtitleMobile')}
         </FormSubtitle>
         
         {success && <SuccessMessage isDesktop={isDesktop}>{success}</SuccessMessage>}
@@ -191,7 +193,7 @@ const ForgotPassword = () => {
           <InputField
             type="email"
             name="email"
-            placeholder="Ingresa tu correo electrónico"
+            placeholder={t('forgotPassword.emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -209,12 +211,12 @@ const ForgotPassword = () => {
               fontWeight: isDesktop ? '600' : '500'
             }}
           >
-            {isLoading ? 'Enviando...' : 'Enviar Instrucciones'}
+            {isLoading ? t('forgotPassword.submitLoading') : t('forgotPassword.submit')}
           </Button>
         </Form>
-        
+
         <LoginLink isDesktop={isDesktop}>
-          <Link to="/login">← Volver al inicio de sesión</Link>
+          <Link to="/login">{t('forgotPassword.backToLogin')}</Link>
         </LoginLink>
       </FormContainer>
     </MainContainer>

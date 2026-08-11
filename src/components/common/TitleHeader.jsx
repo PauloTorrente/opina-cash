@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { FaUsers } from 'react-icons/fa';
 import { keyframes } from 'styled-components';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -38,10 +39,11 @@ const SubTitle = styled.p`
 `;
 
 function TitleHeader() {
+  const { t } = useTranslation();
   return (
     <MegaTitle>
-      <BigTitle><FaUsers /> Panel de Usuarios</BigTitle>
-      <SubTitle>Administra fácilmente todos los usuarios registrados</SubTitle>
+      <BigTitle><FaUsers /> {t('titleHeader.title')}</BigTitle>
+      <SubTitle>{t('titleHeader.subtitle')}</SubTitle>
     </MegaTitle>
   );
 }

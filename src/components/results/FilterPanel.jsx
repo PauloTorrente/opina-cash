@@ -1,5 +1,6 @@
 import { FaFilter, FaTimes, FaUserShield, FaCheckCircle, FaBaby } from 'react-icons/fa';
 import styled from 'styled-components';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const FilterPanelContainer = styled.div`
   background: white;
@@ -100,67 +101,68 @@ const RangeInput = styled.input`
 `;
 
 function FilterPanel({ filters, handleFilterChange, clearFilters, searchTerm, setSearchTerm }) {
+  const { t } = useTranslation();
   return (
     <FilterPanelContainer>
       <FilterHeader>
         <FilterTitle>
-          <FaFilter /> Filtros Avanzados
+          <FaFilter /> {t('filterPanel.title')}
         </FilterTitle>
         <ClearButton onClick={clearFilters}>
-          <FaTimes /> Limpiar
+          <FaTimes /> {t('filterPanel.clear')}
         </ClearButton>
       </FilterHeader>
 
       <FilterGroup>
-        <FilterGroupTitle>Estado de cuenta</FilterGroupTitle>
+        <FilterGroupTitle>{t('filterPanel.accountStatus')}</FilterGroupTitle>
         <FilterOptions>
           <FilterButton
             active={filters.status === 'confirmed'}
             onClick={() => handleFilterChange('status', 'confirmed')}
           >
-            <FaCheckCircle /> Confirmados
+            <FaCheckCircle /> {t('filterPanel.confirmed')}
           </FilterButton>
           <FilterButton
             active={filters.status === 'unconfirmed'}
             onClick={() => handleFilterChange('status', 'unconfirmed')}
           >
-            <FaTimes /> No confirmados
+            <FaTimes /> {t('filterPanel.unconfirmed')}
           </FilterButton>
         </FilterOptions>
       </FilterGroup>
 
       <FilterGroup>
-        <FilterGroupTitle>Tipo de usuario</FilterGroupTitle>
+        <FilterGroupTitle>{t('filterPanel.userType')}</FilterGroupTitle>
         <FilterOptions>
           <FilterButton
             active={filters.role === 'admin'}
             onClick={() => handleFilterChange('role', 'admin')}
           >
-            <FaUserShield /> Administradores
+            <FaUserShield /> {t('filterPanel.admins')}
           </FilterButton>
           <FilterButton
             active={filters.role === 'user'}
             onClick={() => handleFilterChange('role', 'user')}
           >
-            <FaUserShield /> Usuarios normales
+            <FaUserShield /> {t('filterPanel.regularUsers')}
           </FilterButton>
         </FilterOptions>
       </FilterGroup>
 
       <FilterGroup>
-        <FilterGroupTitle>Edad</FilterGroupTitle>
+        <FilterGroupTitle>{t('filterPanel.age')}</FilterGroupTitle>
         <RangeContainer>
           <RangeInput
             type="number"
-            placeholder="Mínimo"
+            placeholder={t('filterPanel.minPlaceholder')}
             value={filters.minAge}
             onChange={(e) => handleFilterChange('minAge', e.target.value)}
             min="0"
           />
-          <span>a</span>
+          <span>{t('filterPanel.rangeSeparator')}</span>
           <RangeInput
             type="number"
-            placeholder="Máximo"
+            placeholder={t('filterPanel.maxPlaceholder')}
             value={filters.maxAge}
             onChange={(e) => handleFilterChange('maxAge', e.target.value)}
             min="0"
@@ -168,110 +170,112 @@ function FilterPanel({ filters, handleFilterChange, clearFilters, searchTerm, se
         </RangeContainer>
       </FilterGroup>
 
+      {/* Os valores comparados/enviados (Sí, No, Masculino, etc.) são os
+          valores gravados no backend — só o texto exibido é traduzido. */}
       <FilterGroup>
-        <FilterGroupTitle>Hijos</FilterGroupTitle>
+        <FilterGroupTitle>{t('filterPanel.children')}</FilterGroupTitle>
         <FilterOptions>
           <FilterButton
             active={filters.children === 'Sí'}
             onClick={() => handleFilterChange('children', 'Sí')}
           >
-            <FaBaby /> Con hijos
+            <FaBaby /> {t('filterPanel.withChildren')}
           </FilterButton>
           <FilterButton
             active={filters.children === 'No'}
             onClick={() => handleFilterChange('children', 'No')}
           >
-            <FaBaby /> Sin hijos
+            <FaBaby /> {t('filterPanel.withoutChildren')}
           </FilterButton>
         </FilterOptions>
       </FilterGroup>
 
       <FilterGroup>
-        <FilterGroupTitle>Género</FilterGroupTitle>
+        <FilterGroupTitle>{t('filterPanel.gender')}</FilterGroupTitle>
         <FilterOptions>
           <FilterButton
             active={filters.gender === 'Masculino'}
             onClick={() => handleFilterChange('gender', 'Masculino')}
           >
-            Masculino
+            {t('filterPanel.genderMale')}
           </FilterButton>
           <FilterButton
             active={filters.gender === 'Femenino'}
             onClick={() => handleFilterChange('gender', 'Femenino')}
           >
-            Femenino
+            {t('filterPanel.genderFemale')}
           </FilterButton>
           <FilterButton
             active={filters.gender === 'Otro'}
             onClick={() => handleFilterChange('gender', 'Otro')}
           >
-            Otro
+            {t('filterPanel.genderOther')}
           </FilterButton>
           <FilterButton
             active={filters.gender === 'Prefiero no decir'}
             onClick={() => handleFilterChange('gender', 'Prefiero no decir')}
           >
-            Prefiero no decir
+            {t('filterPanel.genderPreferNotToSay')}
           </FilterButton>
         </FilterOptions>
       </FilterGroup>
 
       <FilterGroup>
-        <FilterGroupTitle>Responsabilidad de compra</FilterGroupTitle>
+        <FilterGroupTitle>{t('filterPanel.purchaseResponsibility')}</FilterGroupTitle>
         <FilterOptions>
           <FilterButton
             active={filters.purchaseResponsibility === 'Sí'}
             onClick={() => handleFilterChange('purchaseResponsibility', 'Sí')}
           >
-            Sí
+            {t('filterPanel.yes')}
           </FilterButton>
           <FilterButton
             active={filters.purchaseResponsibility === 'No'}
             onClick={() => handleFilterChange('purchaseResponsibility', 'No')}
           >
-            No
+            {t('filterPanel.no')}
           </FilterButton>
           <FilterButton
             active={filters.purchaseResponsibility === 'Parcialmente'}
             onClick={() => handleFilterChange('purchaseResponsibility', 'Parcialmente')}
           >
-            Parcialmente
+            {t('filterPanel.partially')}
           </FilterButton>
         </FilterOptions>
       </FilterGroup>
 
       <FilterGroup>
-        <FilterGroupTitle>Nivel educativo</FilterGroupTitle>
+        <FilterGroupTitle>{t('filterPanel.educationLevel')}</FilterGroupTitle>
         <FilterOptions>
           <FilterButton
             active={filters.educationLevel === 'Primaria'}
             onClick={() => handleFilterChange('educationLevel', 'Primaria')}
           >
-            Primaria
+            {t('filterPanel.educationPrimary')}
           </FilterButton>
           <FilterButton
             active={filters.educationLevel === 'Secundaria'}
             onClick={() => handleFilterChange('educationLevel', 'Secundaria')}
           >
-            Secundaria
+            {t('filterPanel.educationSecondary')}
           </FilterButton>
           <FilterButton
             active={filters.educationLevel === 'Universidad'}
             onClick={() => handleFilterChange('educationLevel', 'Universidad')}
           >
-            Universidad
+            {t('filterPanel.educationUniversity')}
           </FilterButton>
           <FilterButton
             active={filters.educationLevel === 'Posgrado'}
             onClick={() => handleFilterChange('educationLevel', 'Posgrado')}
           >
-            Posgrado
+            {t('filterPanel.educationPostgraduate')}
           </FilterButton>
           <FilterButton
             active={filters.educationLevel === 'Otro'}
             onClick={() => handleFilterChange('educationLevel', 'Otro')}
           >
-            Otro
+            {t('filterPanel.educationOther')}
           </FilterButton>
         </FilterOptions>
       </FilterGroup>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { keyframes , styled } from 'styled-components';
 import { FaSpinner } from 'react-icons/fa';
+import { useTranslation } from '../../../i18n/LanguageContext';
 
 const spin = keyframes`
   from { transform: rotate(0deg); }
@@ -25,11 +26,12 @@ const Spinner = styled(FaSpinner)`
   color: #3498db;
 `;
 
-function Loading({ message = 'Cargando...' }) {
+function Loading({ message }) {
+  const { t } = useTranslation();
   return (
     <LoadingContainer>
       <Spinner />
-      <p>{message}</p>
+      <p>{message ?? t('common.loadingDefault')}</p>
     </LoadingContainer>
   );
 }

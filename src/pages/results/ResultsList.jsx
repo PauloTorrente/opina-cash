@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import SurveyCard from '../../components/common/Card/SurveyCard';
 import styled from 'styled-components';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const ListContainer = styled.div`
   padding: 2rem;
@@ -23,9 +24,10 @@ const Grid = styled.div`
 `;
 
 const ResultsList = ({ surveys }) => {
+  const { t } = useTranslation();
   return (
     <ListContainer>
-      <Title>Available Surveys</Title>
+      <Title>{t('resultsList.title')}</Title>
       <Grid>
         {surveys.map((survey) => (
           <Link key={survey.id} to={`/results/${survey.id}`}>

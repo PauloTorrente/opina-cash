@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Animation settings for the comment container
 const containerVariants = {
@@ -77,6 +78,7 @@ const AnswerText = styled.p`
 
 // CommentSection component receives an array of comments
 const CommentSection = ({ comments }) => {
+  const { t } = useTranslation();
   // Groups comments by their associated question
   const groupedComments = comments.reduce((acc, comment) => {
     if (!acc[comment.question]) {
@@ -95,7 +97,7 @@ const CommentSection = ({ comments }) => {
           initial="hidden"
           animate="visible"
         >
-          <CommentTitle>Comentarios</CommentTitle>
+          <CommentTitle>{t('commentSection.title')}</CommentTitle>
           <QuestionText>{question}</QuestionText>
           <CommentList>
             {groupedComments[question].map((comment, idx) => (

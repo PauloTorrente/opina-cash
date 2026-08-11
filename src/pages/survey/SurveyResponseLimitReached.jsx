@@ -4,15 +4,17 @@ import {
   StatePageWrapper, StateCard, StateIcon,
   StateTitle, StateMessage, CountdownBadge, HomeButton
 } from '../../components/survey/Survey.styles.jsx';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const SurveyResponseLimitReached = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [seconds, setSeconds] = useState(8);
 
   useEffect(() => {
     if (seconds <= 0) { navigate('/'); return; }
-    const t = setTimeout(() => setSeconds(s => s - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setSeconds(s => s - 1), 1000);
+    return () => clearTimeout(timer);
   }, [seconds, navigate]);
 
   return (
@@ -22,13 +24,13 @@ const SurveyResponseLimitReached = () => {
           $bg="linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%)"
           $shadow="0 8px 24px rgba(124,58,237,0.3)"
         >🏆</StateIcon>
-        <StateTitle>¡Encuesta completa!</StateTitle>
+        <StateTitle>{t('surveyResponseLimitReached.title')}</StateTitle>
         <StateMessage>
-          Esta encuesta ya alcanzó el número máximo de participantes. ¡Mantente atento a nuevas encuestas!
+          {t('surveyResponseLimitReached.message')}
         </StateMessage>
-        <CountdownBadge>⏱ Redirigiendo en {seconds}s…</CountdownBadge>
+        <CountdownBadge>{t('surveyResponseLimitReached.countdown', { seconds })}</CountdownBadge>
         <br />
-        <HomeButton onClick={() => navigate('/')}>🏠 Ir al inicio ahora</HomeButton>
+        <HomeButton onClick={() => navigate('/')}>{t('surveyResponseLimitReached.goHomeNow')}</HomeButton>
       </StateCard>
     </StatePageWrapper>
   );

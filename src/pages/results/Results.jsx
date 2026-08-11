@@ -6,6 +6,7 @@ import Filters from '../../components/results/Filters';
 import { SkeletonLoader } from '../../components/common/Card/SkeletonCard';
 import styled from 'styled-components';
 import AuthContext from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const Container = styled.div`
   padding: 2rem;
@@ -14,6 +15,7 @@ const Container = styled.div`
 `;
 
 const Results = () => {
+  const { t } = useTranslation();
   const { surveyId } = useParams();
   const [filter, setFilter] = useState('all');
   const [surveys, setSurveys] = useState([]);
@@ -39,7 +41,7 @@ const Results = () => {
         });
 
         if (!response.ok) {
-          throw new Error(`Erro na requisição: ${response.statusText}`);
+          throw new Error(t('results.fetchError', { statusText: response.statusText }));
         }
         const data = await response.json();
         setSurveys(data.surveys);
@@ -65,7 +67,7 @@ const Results = () => {
           });
 
           if (!response.ok) {
-            throw new Error(`Erro na requisição: ${response.statusText}`);
+            throw new Error(t('results.fetchError', { statusText: response.statusText }));
           }
 
           const data = await response.json();
@@ -91,7 +93,7 @@ const Results = () => {
   });
 
   if (loading) return <SkeletonLoader />;
-  if (error) return <p>Erro: {error}</p>;
+  if (error) return <p>{t('results.errorPrefix', { error })}</p>;
 
   return (
     <Container>

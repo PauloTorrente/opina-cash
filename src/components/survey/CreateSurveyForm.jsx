@@ -18,13 +18,15 @@ import {
 } from './CreateSurveyForm.styles';
 import QuestionInput from './QuestionInput';
 import MediaPreview from './MediaPreview';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const CreateSurveyForm = ({ onSubmit }) => {
+  const { t } = useTranslation();
   const characterLimits = [
-    { value: 'short', label: 'Corto (1-100 caracteres)' },
-    { value: 'medium', label: 'Mediano (10-300 caracteres)' },
-    { value: 'long', label: 'Largo (50-1000 caracteres)' },
-    { value: 'unrestricted', label: 'Sin límite' },
+    { value: 'short', label: t('createSurveyForm.charLimitShort') },
+    { value: 'medium', label: t('createSurveyForm.charLimitMedium') },
+    { value: 'long', label: t('createSurveyForm.charLimitLong') },
+    { value: 'unrestricted', label: t('createSurveyForm.charLimitUnrestricted') },
   ];
 
   const [surveyData, setSurveyData] = useState({
@@ -114,22 +116,22 @@ const CreateSurveyForm = ({ onSubmit }) => {
     const validationErrors = [];
     
     if (!surveyData.title.trim()) {
-      validationErrors.push('El título es requerido');
+      validationErrors.push(t('createSurveyForm.validation.titleRequired'));
     }
-    
+
     if (!surveyData.expirationTime) {
-      validationErrors.push('La fecha de expiración es requerida');
+      validationErrors.push(t('createSurveyForm.validation.expirationRequired'));
     }
-    
+
     surveyData.questions.forEach((q, i) => {
       if (!q.question.trim()) {
-        validationErrors.push(`La pregunta ${i + 1} no puede estar vacía`);
+        validationErrors.push(t('createSurveyForm.validation.questionEmpty', { number: i + 1 }));
       }
-      
+
       if (q.type === 'multiple_choice') {
         q.options.forEach((opt, optIndex) => {
           if (!opt.trim()) {
-            validationErrors.push(`La opción ${optIndex + 1} en la pregunta ${i + 1} no puede estar vacía`);
+            validationErrors.push(t('createSurveyForm.validation.optionEmpty', { optionNumber: optIndex + 1, questionNumber: i + 1 }));
           }
         });
       }
@@ -168,27 +170,27 @@ const CreateSurveyForm = ({ onSubmit }) => {
     <Container>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <Form onSubmit={handleSubmit}>
-          <h1>Crear Encuesta 📝</h1>
-          
+          <h1>{t('createSurveyForm.heading')}</h1>
+
           <Input
             type="text"
             name="title"
-            placeholder="Título"
+            placeholder={t('createSurveyForm.titlePlaceholder')}
             value={surveyData.title}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             required
           />
-          
+
           <Input
             type="text"
             name="description"
-            placeholder="Descripción"
+            placeholder={t('createSurveyForm.descriptionPlaceholder')}
             value={surveyData.description}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
           />
-          
+
           <Input
             type="datetime-local"
             name="expirationTime"
@@ -198,7 +200,7 @@ const CreateSurveyForm = ({ onSubmit }) => {
             required
           />
 
-          <SectionTitle>Preguntas</SectionTitle>
+          <SectionTitle>{t('createSurveyForm.questionsSection')}</SectionTitle>
 
           {surveyData.questions.map((question, index) => (
             <QuestionContainer key={index}>
@@ -220,7 +222,7 @@ const CreateSurveyForm = ({ onSubmit }) => {
               
               {question.type === 'text' && (
                 <div style={{ marginTop: '10px', width: '100%' }}>
-                  <CharacterLimitLabel>Límite de caracteres:</CharacterLimitLabel>
+                  <CharacterLimitLabel>{t('createSurveyForm.charLimitLabel')}</CharacterLimitLabel>
                   <Select
                     value={question.answerLength}
                     onChange={(e) => handleQuestionChange(index, { 
@@ -245,9 +247,9 @@ const CreateSurveyForm = ({ onSubmit }) => {
                     mediaUrl: ''
                   })}
                 >
-                  {question.mediaType === 'image' ? '✔️ Imagen' : 'Añadir Imagen'}
+                  {question.mediaType === 'image' ? t('createSurveyForm.imageOn') : t('createSurveyForm.imageOff')}
                 </ToggleButton>
-                
+
                 <ToggleButton
                   type="button"
                   $active={question.mediaType === 'video'}
@@ -256,7 +258,7 @@ const CreateSurveyForm = ({ onSubmit }) => {
                     mediaUrl: ''
                   })}
                 >
-                  {question.mediaType === 'video' ? '✔️ Video' : 'Añadir Video'}
+                  {question.mediaType === 'video' ? t('createSurveyForm.videoOn') : t('createSurveyForm.videoOff')}
                 </ToggleButton>
               </MediaToggle>
 
@@ -264,7 +266,7 @@ const CreateSurveyForm = ({ onSubmit }) => {
                 <>
                   <Input
                     type="text"
-                    placeholder={`URL de ${question.mediaType === 'image' ? 'Imagen' : 'Video'}`}
+                    placeholder={t('createSurveyForm.mediaUrlPlaceholder', { mediaType: question.mediaType === 'image' ? t('createSurveyForm.mediaTypeImage') : t('createSurveyForm.mediaTypeVideo') })}
                     value={question.mediaUrl}
                     onChange={(e) => handleQuestionChange(index, { mediaUrl: e.target.value })}
                     onKeyDown={handleKeyDown}
@@ -282,9 +284,9 @@ const CreateSurveyForm = ({ onSubmit }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Añadir Pregunta ➕
+              {t('createSurveyForm.addQuestion')}
             </AddButton>
-            
+
             {surveyData.questions.length > 1 && (
               <RemoveButton
                 type="button"
@@ -292,13 +294,13 @@ const CreateSurveyForm = ({ onSubmit }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Eliminar Última ➖
+                {t('createSurveyForm.removeLast')}
               </RemoveButton>
             )}
           </ButtonGroup>
 
           <Button type="submit" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            Crear Encuesta
+            {t('createSurveyForm.submit')}
           </Button>
         </Form>
       </motion.div>

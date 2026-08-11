@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const Copyright = styled.div`
   margin-top: 2rem;
@@ -10,10 +10,10 @@ const Copyright = styled.div`
 `;
 
 const Footer = () => {
+  const { t } = useTranslation();
   return (
-
       <Copyright>
-        &copy; {new Date().getFullYear()} Opina Cash - Todos los derechos reservados
+        {t('footer.copyright', { year: new Date().getFullYear() })}
       </Copyright>
   );
 };

@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { FaGift } from 'react-icons/fa';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const ReminderOverlay = styled(motion.div)`
   position: fixed;
@@ -63,6 +64,7 @@ const ReminderCard = styled(motion.div)`
 `;
 
 export default function InfoReminder() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -84,8 +86,8 @@ export default function InfoReminder() {
         onClick={handleClick}
       >
         <FaGift className="icon" />
-        <h3>¡Gana X Euros ahora!</h3>
-        <p>Haz clic aquí para completar tu perfil y recibir tu recompensa 🎉</p>
+        <h3>{t('infoReminder.title')}</h3>
+        <p>{t('infoReminder.text')}</p>
       </ReminderCard>
     </ReminderOverlay>
   );

@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const Container = styled.div`
   margin-bottom: 2rem;
@@ -117,6 +118,7 @@ const RemoveOptionButtonLarge = styled(ActionButton)`
 `;
 
 const QuestionInput = ({ index, question, onQuestionChange, onKeyDown }) => {
+  const { t } = useTranslation();
   const handleTypeChange = (e) => {
     const newType = e.target.value;
     console.group(`🔄 Alteração de tipo na pergunta ${index}`);
@@ -162,7 +164,7 @@ const QuestionInput = ({ index, question, onQuestionChange, onKeyDown }) => {
   const addOption = () => {
     if (question.options && question.options.length >= 6) {
       console.warn('❌ Limite máximo de opções atingido');
-      alert('Máximo 6 opciones permitidas');
+      alert(t('questionInput.maxOptionsAlert'));
       return;
     }
     
@@ -175,7 +177,7 @@ const QuestionInput = ({ index, question, onQuestionChange, onKeyDown }) => {
   const removeOption = (optionIndex) => {
     if (question.options && question.options.length <= 2) {
       console.warn('❌ Mínimo de opções atingido');
-      alert('Cada pregunta debe tener al menos dos opciones');
+      alert(t('questionInput.minOptionsAlert'));
       return;
     }
     
@@ -201,13 +203,13 @@ const QuestionInput = ({ index, question, onQuestionChange, onKeyDown }) => {
         onChange={handleTypeChange}
         onKeyDown={onKeyDown}
       >
-        <option value="multiple_choice">Opción múltiple</option>
-        <option value="text">Respuesta de texto</option>
+        <option value="multiple_choice">{t('questionInput.typeMultipleChoice')}</option>
+        <option value="text">{t('questionInput.typeText')}</option>
       </QuestionTypeSelect>
 
       <QuestionTextInput
         type="text"
-        placeholder={`Pregunta ${index + 1}`}
+        placeholder={t('questionInput.questionPlaceholder', { number: index + 1 })}
         value={question.question}
         onChange={handleQuestionTextChange}
         onKeyDown={onKeyDown}
@@ -220,7 +222,7 @@ const QuestionInput = ({ index, question, onQuestionChange, onKeyDown }) => {
             <OptionInputContainer key={optionIndex}>
               <OptionInputField
                 type="text"
-                placeholder={`Opción ${optionIndex + 1}`}
+                placeholder={t('questionInput.optionPlaceholder', { number: optionIndex + 1 })}
                 value={option}
                 onChange={(e) => handleOptionChange(optionIndex, e)}
                 onKeyDown={onKeyDown}
@@ -230,7 +232,7 @@ const QuestionInput = ({ index, question, onQuestionChange, onKeyDown }) => {
                 <RemoveOptionButton
                   type="button"
                   onClick={() => removeOption(optionIndex)}
-                  title="Eliminar opción"
+                  title={t('questionInput.removeOptionTitle')}
                 >
                   ×
                 </RemoveOptionButton>
@@ -245,9 +247,9 @@ const QuestionInput = ({ index, question, onQuestionChange, onKeyDown }) => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Añadir Opción
+              {t('questionInput.addOption')}
             </AddOptionButton>
-            
+
             {question.options?.length > 2 && (
               <RemoveOptionButtonLarge
                 type="button"
@@ -255,7 +257,7 @@ const QuestionInput = ({ index, question, onQuestionChange, onKeyDown }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                Eliminar Última
+                {t('questionInput.removeLastOption')}
               </RemoveOptionButtonLarge>
             )}
           </ButtonGroup>

@@ -1,10 +1,12 @@
 import axios from 'axios';
 
-export const handleRegisterSubmit = async (formData, setErrors, setShowSuccessModal) => {
+// `t` is the translation function from useTranslation() — this is a plain
+// function (not a component/hook), so the caller must pass it in explicitly.
+export const handleRegisterSubmit = async (formData, setErrors, setShowSuccessModal, t) => {
   try {
     // Check if passwords match
     if (formData.password !== formData.confirmPassword) {
-      setErrors(['Passwords do not match.']); // Show error if passwords don't match
+      setErrors([t('register.submitErrors.passwordMismatch')]); // Show error if passwords don't match
       return;
     }
 
@@ -24,18 +26,18 @@ export const handleRegisterSubmit = async (formData, setErrors, setShowSuccessMo
 
       // Handle different error responses based on status and message
       if (status === 409 && data.message === 'Email is already registered') {
-        setErrors(['This email is already registered.']); // Show error if email is already registered
+        setErrors([t('register.submitErrors.emailTaken')]); // Show error if email is already registered
       } else if (status === 400 && data.message === 'Invalid email format') {
-        setErrors(['Invalid email format.']); // Show error for invalid email format
+        setErrors([t('register.submitErrors.invalidEmailFormat')]); // Show error for invalid email format
       } else if (status === 400 && data.message === 'Password must be at least 8 characters') {
-        setErrors(['Password must be at least 8 characters.']); // Show error for short password
+        setErrors([t('register.submitErrors.passwordTooShort')]); // Show error for short password
       } else {
-        setErrors([data.message || "Error connecting to the server. Please try again later."]); // Show generic error message
+        setErrors([data.message || t('register.submitErrors.genericServer')]); // Show generic error message
       }
     } else if (error.request) {
-      setErrors(["Could not connect to the server. Please check your internet connection and try again."]); // Show error if no response from server
+      setErrors([t('register.submitErrors.noConnection')]); // Show error if no response from server
     } else {
-      setErrors(["An unexpected error occurred. Please try again later."]); // Show generic unexpected error message
+      setErrors([t('register.submitErrors.unexpected')]); // Show generic unexpected error message
     }
   }
 };

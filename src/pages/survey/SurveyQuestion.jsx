@@ -9,6 +9,7 @@ import {
 import CharacterCounter from './CharacterCounter';
 import { useSurveyQuestionHandlers } from './SurveyQuestionHandlers';
 import { FaCheckCircle, FaRegCircle, FaKeyboard } from 'react-icons/fa';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // ─── PROBLEMA 2: Labels de escala 1-5 ─────────────────────────────────────────
 // Detecta se uma pergunta é de escala e retorna os labels correspondentes.
@@ -179,6 +180,7 @@ const SurveyQuestion = ({
   // Contexto para condicional (problema 7)
   allResponses = {}, questionIndex = 0, allQuestions = [],
 }) => {
+  const { t } = useTranslation();
   const {
     isVerticalImage,
     getLengthLabel, getLengthConfig,
@@ -235,17 +237,17 @@ const SurveyQuestion = ({
 
   // Badge de tipo
   const typeBadge = (() => {
-    if (question.type === 'text') return { icon: <FaKeyboard size={12} />, label: 'Respuesta abierta', color: '#17a2b8' };
-    if (isMultipleSelection && limit) return { icon: <FaCheckCircle size={12} />, label: `Selección múltiple — máx. ${limit}`, color: '#dc3545' };
-    if (isMultipleSelection) return { icon: <FaCheckCircle size={12} />, label: 'Selección múltiple', color: '#28a745' };
-    return { icon: <FaRegCircle size={12} />, label: 'Selección única', color: '#007bff' };
+    if (question.type === 'text') return { icon: <FaKeyboard size={12} />, label: t('surveyQuestion.typeOpenAnswer'), color: '#17a2b8' };
+    if (isMultipleSelection && limit) return { icon: <FaCheckCircle size={12} />, label: t('surveyQuestion.typeMultipleWithLimit', { limit }), color: '#dc3545' };
+    if (isMultipleSelection) return { icon: <FaCheckCircle size={12} />, label: t('surveyQuestion.typeMultiple'), color: '#28a745' };
+    return { icon: <FaRegCircle size={12} />, label: t('surveyQuestion.typeSingle'), color: '#007bff' };
   })();
 
   return (
     <QuestionContainer data-question-id={question.questionId}>
       <QuestionHeaderRow>
         <TypeBadge $color={typeBadge.color}>{typeBadge.icon} {typeBadge.label}</TypeBadge>
-        {question.required && <RequiredBadge>Obligatorio</RequiredBadge>}
+        {question.required && <RequiredBadge>{t('surveyQuestion.required')}</RequiredBadge>}
       </QuestionHeaderRow>
 
       <QuestionText>
@@ -282,7 +284,7 @@ const SurveyQuestion = ({
             <InputFieldStyled
               as="textarea"
               style={{ resize: 'vertical', minHeight: question.answerLength === 'long' ? '120px' : question.answerLength === 'medium' ? '80px' : '48px' }}
-              placeholder="Escribe tu respuesta aquí..."
+              placeholder={t('surveyQuestion.textPlaceholder')}
               value={response || ''}
               onChange={handleTextChange}
               required={question.required}
@@ -303,7 +305,7 @@ const SurveyQuestion = ({
                 <LimitCount $atLimit={isAtLimit}>{currentCount}/{limit}</LimitCount>
               </LimitRow>
               {isAtLimit && (
-                <LimitWarning>⛔ Límite alcanzado — desmarca una opción para cambiar.</LimitWarning>
+                <LimitWarning>{t('surveyQuestion.limitReachedWarning')}</LimitWarning>
               )}
             </>
           )}
@@ -323,7 +325,7 @@ const SurveyQuestion = ({
                   }
                   <OptionLabel $selected={selected} $disabled={!canSel}>
                     {displayLabel}
-                    {!canSel && !selected && <DisabledHint> (límite alcanzado)</DisabledHint>}
+                    {!canSel && !selected && <DisabledHint>{t('surveyQuestion.limitReachedHint')}</DisabledHint>}
                   </OptionLabel>
                 </OptionalItem>
               );
@@ -345,7 +347,7 @@ const SurveyQuestion = ({
                   </OptionalItem>
                   {otherSelected && (
                     <OtherInputWrapper>
-                      <InputFieldStyled type="text" placeholder="Especifica aquí..."
+                      <InputFieldStyled type="text" placeholder={t('surveyQuestion.otherPlaceholder')}
                         value={otherText}
                         onChange={(e) => handleOtherTextChange(e.target.value)}
                         autoFocus />

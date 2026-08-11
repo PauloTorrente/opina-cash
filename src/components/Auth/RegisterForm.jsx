@@ -5,6 +5,7 @@ import Button from '../common/Button/Button';
 import LoadingSpinner from '../common/Loader/LoadingSpinner';
 import ErrorDisplay from '../common/ErrorDisplay';
 import PasswordStrength from '../Auth/PasswordStrength';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 // Container principal que se adapta ao dispositivo
 const MainContainer = styled.div`
@@ -183,6 +184,7 @@ const DecorativeHeader = styled.div`
 
 // RegisterForm component
 const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, handleBlur, fieldErrors, acceptedTerms, setAcceptedTerms }) => {
+  const { t } = useTranslation();
   const [isDesktop, setIsDesktop] = useState(false);
 
   // Verifica se é desktop baseado no tamanho da tela
@@ -220,12 +222,12 @@ const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, han
           </div>
         </DecorativeHeader>
         
-        <FormTitle isDesktop={isDesktop}>Regístrate y comienza a ganar</FormTitle>
-        
+        <FormTitle isDesktop={isDesktop}>{t('register.title')}</FormTitle>
+
         <FormSubtitle isDesktop={isDesktop}>
-          {isDesktop 
-            ? 'Crea tu cuenta en pocos pasos y accede a todas nuestras funcionalidades exclusivas' 
-            : 'Completa el formulario para crear tu cuenta'}
+          {isDesktop
+            ? t('register.subtitleDesktop')
+            : t('register.subtitleMobile')}
         </FormSubtitle>
         
         <form onSubmit={onSubmit} style={{ width: '100%' }}>
@@ -234,7 +236,7 @@ const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, han
             <InputField
               type="text"
               name="firstName"
-              placeholder="Nombre *"
+              placeholder={t('register.firstNamePlaceholder')}
               value={formData.firstName}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -246,7 +248,7 @@ const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, han
             <InputField
               type="text"
               name="lastName"
-              placeholder="Apellido *"
+              placeholder={t('register.lastNamePlaceholder')}
               value={formData.lastName}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -259,7 +261,7 @@ const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, han
               <InputField
                 type="email"
                 name="email"
-                placeholder="Correo electrónico *"
+                placeholder={t('register.emailPlaceholder')}
                 value={formData.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -273,7 +275,7 @@ const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, han
               <InputField
                 type="password"
                 name="password"
-                placeholder="Contraseña *"
+                placeholder={t('register.passwordPlaceholder')}
                 value={formData.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -287,7 +289,7 @@ const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, han
               <InputField
                 type="password"
                 name="confirmPassword"
-                placeholder="Confirmar contraseña *"
+                placeholder={t('register.confirmPasswordPlaceholder')}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -314,9 +316,9 @@ const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, han
               target="_blank"
               isDesktop={isDesktop}
             >
-              {isDesktop 
-                ? 'Acepto los términos y condiciones del servicio' 
-                : 'Aceptar términos y condiciones'}
+              {isDesktop
+                ? t('register.termsDesktop')
+                : t('register.termsMobile')}
             </TermsLink>
           </TermsContainer>
 
@@ -339,7 +341,7 @@ const RegisterForm = ({ onSubmit, isLoading, errors, formData, handleChange, han
                   width: '100%'
                 }}
               >
-                {isDesktop ? 'Crear mi cuenta' : 'Registrarse'}
+                {isDesktop ? t('register.submitDesktop') : t('register.submitMobile')}
               </Button>
             )}
           </ButtonContainer>

@@ -5,8 +5,10 @@ import SuccessModal from '../../components/common/Modal/SuccessModal';
 import RegisterForm from '../../components/Auth/RegisterForm';
 import { validateEmail, validatePassword, validateConfirmPassword } from '../../hooks/validations.js';
 import { handleRegisterSubmit } from '../../hooks/handleRegisterSubmit.js';
+import { useTranslation } from '../../i18n/LanguageContext';
 
 const Register = () => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -38,13 +40,13 @@ const Register = () => {
     let errorMessage = '';
 
     if (name === 'email' && value.trim() !== '' && !validateEmail(value)) {
-      errorMessage = 'Correo electrónico inválido.';
+      errorMessage = t('register.validation.invalidEmail');
     } else if (name === 'password' && value.trim() !== '') {
-      errorMessage = validatePassword(value); // Retorna a mensagem de erro específica
+      errorMessage = validatePassword(value, t); // Retorna a mensagem de erro específica
     } else if (name === 'confirmPassword' && value.trim() !== '') {
-      errorMessage = validateConfirmPassword(formData.password, value); // Verifica se as senhas coincidem
+      errorMessage = validateConfirmPassword(formData.password, value, t); // Verifica se as senhas coincidem
     } else if ((name === 'firstName' || name === 'lastName') && value.trim() === '') {
-      errorMessage = 'Este campo es obligatorio.';
+      errorMessage = t('register.validation.required');
     }
 
     setFieldErrors({ ...fieldErrors, [name]: errorMessage });
@@ -56,23 +58,23 @@ const Register = () => {
     setErrors([]);
 
     const newFieldErrors = {
-      firstName: formData.firstName.trim() === '' ? 'Este campo es obligatorio.' : '',
-      lastName: formData.lastName.trim() === '' ? 'Este campo es obligatorio.' : '',
-      email: formData.email.trim() === '' ? 'Este campo es obligatorio.' : !validateEmail(formData.email) ? 'Correo electrónico inválido.' : '',
-      password: formData.password.trim() === '' ? 'Este campo es obligatorio.' : validatePassword(formData.password),
-      confirmPassword: formData.confirmPassword.trim() === '' ? 'Este campo es obligatorio.' : validateConfirmPassword(formData.password, formData.confirmPassword),
+      firstName: formData.firstName.trim() === '' ? t('register.validation.required') : '',
+      lastName: formData.lastName.trim() === '' ? t('register.validation.required') : '',
+      email: formData.email.trim() === '' ? t('register.validation.required') : !validateEmail(formData.email) ? t('register.validation.invalidEmail') : '',
+      password: formData.password.trim() === '' ? t('register.validation.required') : validatePassword(formData.password, t),
+      confirmPassword: formData.confirmPassword.trim() === '' ? t('register.validation.required') : validateConfirmPassword(formData.password, formData.confirmPassword, t),
     };
 
     setFieldErrors(newFieldErrors);
     // Verifica se há erros nos campos ou se os termos não foram aceitos
     const hasErrors = Object.values(newFieldErrors).some(error => error !== '' && error !== null);
     if (hasErrors || !acceptedTerms) {
-      setErrors(["Por favor, corrige los errores en el formulario y acepta los términos y condiciones."]);
+      setErrors([t('register.validation.formErrors')]);
       setIsLoading(false);
       return;
     }
 
-    await handleRegisterSubmit(formData, setErrors, setShowSuccessModal);
+    await handleRegisterSubmit(formData, setErrors, setShowSuccessModal, t);
     setIsLoading(false);
   };
 

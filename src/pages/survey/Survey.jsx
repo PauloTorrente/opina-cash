@@ -12,16 +12,22 @@ import SurveyResponseLimitReached from './SurveyResponseLimitReached';
 
 // ─── Verificação se o usuário já respondeu ────────────────────────────────────
 const checkAlreadyResponded = async (accessToken) => {
-  const token = localStorage.getItem('token');
-  if (!token || !accessToken) return false;
+  if (!accessToken) return false;
   try {
+    const csrfMatch = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);
+    const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : null;
+
     // Tentamos o POST com corpo vazio — o backend retorna 400 "already responded"
     // se o user já respondeu, antes de qualquer validação de payload.
     const res = await fetch(
       `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+        },
         body: JSON.stringify([]),   // array vazio — não cria resultado, só aciona a guard
       }
     );

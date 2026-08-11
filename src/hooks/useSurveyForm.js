@@ -227,9 +227,6 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
     setIsSubmitting(true);
     setSubmitError(null);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Token de autenticación no encontrado');
-
       // Enviar só as perguntas visíveis (sem as ocultadas pelo Nunca)
       const responseData = visibleQuestions.map((q, i) => {
         const questionId = !isNaN(Number(q.questionId))
@@ -238,6 +235,9 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
         return { questionId, answer: responses[q.questionId] };
       });
 
+      const csrfMatch = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);
+      const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : null;
+
       // Usamos o endpoint estrito (/respond): valida cada resposta contra o
       // schema da pergunta e normaliza a opção "Outro" para texto legível
       // nos resultados — o /respond-permissive não faz nenhuma das duas coisas.
@@ -245,7 +245,11 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
         `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+          },
           body: JSON.stringify(responseData),
         }
       );

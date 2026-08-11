@@ -77,13 +77,8 @@ const ResultsDetails = ({ responses, survey }) => {
   // Função para exportar as respostas para Excel
   const handleExport = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error('Token de autenticação não encontrado.');
-
       const response = await fetch(`https://enova-backend.onrender.com/api/results/export/${survey.id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+        credentials: 'include',
       });
 
       if (response.ok) {

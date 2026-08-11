@@ -1,10 +1,34 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 
 const API_BASE_URL = 'https://enova-backend.onrender.com/api';
 
 const AuthContext = createContext();
+
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+// Shared client for authenticated calls: the httpOnly accessToken/refreshToken
+// cookies set by the backend ride along automatically (withCredentials), so
+// there's no token to read out of localStorage — which is exactly the point,
+// since that's what made it readable by an XSS bug in the first place.
+const client = axios.create({ baseURL: API_BASE_URL, withCredentials: true });
+
+client.interceptors.request.use((config) => {
+  // SameSite=None cookies are sent cross-site, so the cookie alone doesn't
+  // rule out CSRF. Mirror the readable csrfToken cookie into a header the
+  // backend checks against the claim embedded in the access token.
+  const method = config.method?.toUpperCase();
+  if (method && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    const csrfToken = getCookie('csrfToken');
+    if (csrfToken) {
+      config.headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
+  return config;
+});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -12,128 +36,71 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeUser = async () => {
-      const storedToken = localStorage.getItem('token');
-      const storedRefreshToken = localStorage.getItem('refreshToken');
-  
-      if (storedToken && storedRefreshToken) {
-        try {
-          // Fetch updated user data
-          const userResponse = await axios.get(`${API_BASE_URL}/users/me`, {
-            headers: {
-              Authorization: `Bearer ${storedToken}`
-            }
-          });
-  
-          const decodedToken = jwtDecode(storedToken);
-          
-          setUser({
-            ...userResponse.data,
-            token: storedToken,
-            refreshToken: storedRefreshToken,
-            role: decodedToken.role,
-          });
-  
-        } catch (error) {
-          console.error('Error initializing user:', error);
-          logout();
-        }
+      try {
+        const userResponse = await client.get('/users/me');
+        setUser(userResponse.data);
+      } catch (error) {
+        // No valid session cookie (or it expired) — stay logged out.
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-  
+
     initializeUser();
   }, []);
-  
-  const login = async (data, redirectPath = '/') => {
+
+  // Called after the login request has already set the auth cookies —
+  // fetches the profile to populate `user` (role included).
+  const login = async () => {
     try {
-      const decodedToken = jwtDecode(data.token);
-      // Fetch complete user data after login
-      const userResponse = await axios.get(`${API_BASE_URL}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${data.token}`
-        }
-      });
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      // Store ALL user data
-      setUser({
-        ...userResponse.data, // Includes phone_number and other fields
-        token: data.token,
-        refreshToken: data.refreshToken,
-        role: decodedToken.role,
-      });
-  
-      return redirectPath;
+      const userResponse = await client.get('/users/me');
+      setUser(userResponse.data);
+      return '/';
     } catch (error) {
       console.error('Login error:', error);
       throw error;
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await client.post('/auth/logout');
+    } catch (error) {
+      console.error('Error calling logout endpoint:', error);
+    }
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
   };
 
+  // Refreshes the access token cookie using the refresh token cookie.
   const refreshToken = async () => {
-    const storedRefreshToken = localStorage.getItem('refreshToken');
-    if (!storedRefreshToken) {
-      throw new Error('No refresh token found');
-    }
-
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {
-        refreshToken: storedRefreshToken,
-      });
-
-      const newToken = response.data.token;
-      localStorage.setItem('token', newToken);
-      return newToken;
+      await client.post('/auth/refresh-token');
     } catch (error) {
-      logout();
+      await logout();
       throw error;
     }
   };
 
   const authFetch = async (url, options = {}) => {
-    let token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No token found');
-    }
-
-    const headers = {
-      ...options.headers,
-      Authorization: `Bearer ${token}`,
-    };
-
     try {
-      return await axios({
-        ...options,
-        url: `${API_BASE_URL}${url}`,
-        headers,
-      });
+      return await client({ ...options, url });
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        const newToken = await refreshToken();
-        headers.Authorization = `Bearer ${newToken}`;
-        return axios({
-          ...options,
-          url: `${API_BASE_URL}${url}`,
-          headers,
-        });
+        await refreshToken();
+        return client({ ...options, url });
       }
       throw error;
     }
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      login, 
-      logout, 
-      loading, 
-      authFetch 
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      loading,
+      authFetch
     }}>
       {children}
     </AuthContext.Provider>

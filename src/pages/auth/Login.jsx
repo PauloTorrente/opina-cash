@@ -156,8 +156,10 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      const data = await loginUser(credentials);
-      await login(data);
+      // The backend sets the auth cookies on this response; login() below
+      // just fetches the profile now that the session cookie is set.
+      await loginUser(credentials);
+      await login();
       navigate(`${from}${searchParams}`, { replace: true });
     } catch (err) {
       const msg = err.message || '';

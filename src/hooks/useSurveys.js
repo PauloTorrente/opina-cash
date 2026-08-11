@@ -43,15 +43,11 @@ export const useSurvey = (accessTokenParam) => {
           return;
         }
 
-        // Get authentication token from localStorage
-        const token = localStorage.getItem('token');
-        if (!token) throw new Error('Authentication token not found');
-
-        // Fetch survey data from API
+        // Fetch survey data from API — the auth cookie rides along automatically
         const apiUrl = `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`;
-        
+
         const response = await fetch(apiUrl, {
-          headers: { 'Authorization': `Bearer ${token}` },
+          credentials: 'include',
         });
 
         // Parse response data (read the body once, whether it's an error or not)

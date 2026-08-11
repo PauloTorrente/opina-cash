@@ -34,15 +34,8 @@ const Results = () => {
   useEffect(() => {
     const fetchSurveys = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('Token de autenticação não encontrado.');
-        }
-
         const response = await fetch('https://enova-backend.onrender.com/api/surveys/active', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -67,15 +60,8 @@ const Results = () => {
     if (surveyId && user?.role === 'Admin') {
       const fetchResponses = async () => {
         try {
-          const token = localStorage.getItem('token');
-          if (!token) {
-            throw new Error('Token de autenticação não encontrado.');
-          }
-
           const response = await fetch(`https://enova-backend.onrender.com/api/results/survey/${surveyId}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
+            credentials: 'include',
           });
 
           if (!response.ok) {

@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { loginUser } from '../../services/api.js';
 import InputField from '../../components/common/Input/InputField';
-import AuthContext from '../../context/AuthContext';
+import AuthContext, { setCsrfToken } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n/LanguageContext';
 import styled, { keyframes } from 'styled-components';
 
@@ -158,9 +158,13 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      // The backend sets the auth cookies on this response; login() below
-      // just fetches the profile now that the session cookie is set.
-      await loginUser(credentials);
+      // The backend sets the auth cookies on this response and also
+      // returns the csrfToken in the body (it's cross-origin, so the
+      // frontend can't read the cookie version — see AuthContext.jsx).
+      // login() below just fetches the profile now that the session
+      // cookie is set.
+      const { csrfToken } = await loginUser(credentials);
+      setCsrfToken(csrfToken);
       await login();
       navigate(`${from}${searchParams}`, { replace: true });
     } catch (err) {

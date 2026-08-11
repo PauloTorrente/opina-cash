@@ -5,7 +5,7 @@ import {
   StatePageWrapper, StateCard, StateIcon, StateTitle, StateMessage, HomeButton
 } from '../../components/survey/Survey.styles.jsx';
 import { useSurvey } from '../../hooks/useSurveys.js';
-import AuthContext from '../../context/AuthContext';
+import AuthContext, { getCsrfToken } from '../../context/AuthContext';
 import SurveyForm from './SurveyForm';
 import SurveyAlreadyResponded from './SurveyAlreadyResponded';
 import SurveyResponseLimitReached from './SurveyResponseLimitReached';
@@ -15,8 +15,9 @@ import { useTranslation } from '../../i18n/LanguageContext';
 const checkAlreadyResponded = async (accessToken) => {
   if (!accessToken) return false;
   try {
-    const csrfMatch = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);
-    const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : null;
+    // csrfToken cookie is cross-origin and unreadable here — see the note
+    // in AuthContext.jsx. Use its in-memory copy instead.
+    const csrfToken = getCsrfToken();
 
     // Tentamos o POST com corpo vazio — o backend retorna 400 "already responded"
     // se o user já respondeu, antes de qualquer validação de payload.

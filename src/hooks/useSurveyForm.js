@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { getCsrfToken, setCsrfToken } from '../context/AuthContext';
 
 // ─── Desserialização segura ───────────────────────────────────────────────────
 const parseQuestions = (questions) => {
@@ -150,21 +151,20 @@ const isQuestionValid = (q, answer, index, allQuestions, responses) => {
   return true;
 };
 
-const readCsrfCookie = () => {
-  const match = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
-};
-
-// The access token (and the csrfToken cookie tied to it) live only 1h —
-// see Enova-backend/api/auth/auth.session.controller.js. A survey can
-// easily take longer than that to finish (someone opens the link, gets
-// interrupted, comes back later), so a submit made with a stale csrfToken
-// gets a 401/403 back. Unlike every other authenticated call in the app
-// (which goes through AuthContext's authFetch and retries after a token
-// refresh), this is a bare fetch — so without this retry, a slow survey
-// would fail on submit and silently drop all the user's answers.
+// The csrfToken cookie the backend sets can't be read here — it belongs
+// to enova-backend.onrender.com, a different origin than this frontend,
+// and document.cookie never exposes another origin's cookies. The real
+// value lives in AuthContext's in-memory copy (populated at login/refresh
+// from the response body instead). The access token backing it lives only
+// 1h — see Enova-backend/api/auth/auth.session.controller.js — and a
+// survey can easily take longer than that to finish (someone opens the
+// link, gets interrupted, comes back later), so a submit made with a
+// stale csrfToken gets a 401/403 back. Unlike every other authenticated
+// call in the app (which goes through AuthContext's authFetch and retries
+// after a token refresh), this is a bare fetch — so without this retry, a
+// slow survey would fail on submit and silently drop all the user's answers.
 const submitSurveyResponse = async (accessToken, responseData, alreadyRetried = false) => {
-  const csrfToken = readCsrfCookie();
+  const csrfToken = getCsrfToken();
   const res = await fetch(
     `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
     {
@@ -184,6 +184,8 @@ const submitSurveyResponse = async (accessToken, responseData, alreadyRetried = 
       credentials: 'include',
     });
     if (refreshRes.ok) {
+      const { csrfToken: freshCsrfToken } = await refreshRes.json();
+      setCsrfToken(freshCsrfToken);
       return submitSurveyResponse(accessToken, responseData, true);
     }
   }

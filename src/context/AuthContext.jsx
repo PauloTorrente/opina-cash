@@ -5,10 +5,19 @@ const API_BASE_URL = 'https://enova-backend.onrender.com/api';
 
 const AuthContext = createContext();
 
-const getCookie = (name) => {
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-};
+// The csrfToken cookie the backend sets is unreadable here on purpose —
+// it belongs to enova-backend.onrender.com, a different registrable domain
+// than this frontend, and document.cookie can never see another origin's
+// cookie (that's a browser boundary, not a bug we can configure around).
+// So the backend also returns the value in the login/refresh response
+// body, and we keep it in memory instead — same double-submit security
+// property (an attacker's forged request still can't produce this value),
+// but it actually works cross-origin. Module-level since this survives
+// across the app but resets on a full page reload, which is why
+// initializeUser() below re-primes it via a refresh call on mount.
+let csrfTokenMemory = null;
+export const setCsrfToken = (token) => { csrfTokenMemory = token || null; };
+export const getCsrfToken = () => csrfTokenMemory;
 
 // Shared client for authenticated calls: the httpOnly accessToken/refreshToken
 // cookies set by the backend ride along automatically (withCredentials), so
@@ -18,13 +27,12 @@ const client = axios.create({ baseURL: API_BASE_URL, withCredentials: true });
 
 client.interceptors.request.use((config) => {
   // SameSite=None cookies are sent cross-site, so the cookie alone doesn't
-  // rule out CSRF. Mirror the readable csrfToken cookie into a header the
-  // backend checks against the claim embedded in the access token.
+  // rule out CSRF. Mirror the in-memory csrfToken (see above) into a header
+  // the backend checks against the claim embedded in the access token.
   const method = config.method?.toUpperCase();
   if (method && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
-    const csrfToken = getCookie('csrfToken');
-    if (csrfToken) {
-      config.headers['X-CSRF-Token'] = csrfToken;
+    if (csrfTokenMemory) {
+      config.headers['X-CSRF-Token'] = csrfTokenMemory;
     }
   }
   return config;
@@ -39,6 +47,16 @@ export const AuthProvider = ({ children }) => {
       try {
         const userResponse = await client.get('/users/me');
         setUser(userResponse.data);
+        // A page reload wipes csrfTokenMemory (it only ever lived in JS),
+        // even though the httpOnly session cookies survived. Re-prime it
+        // so the first save/submit after a reload doesn't have to fail
+        // once before authFetch's retry-after-refresh kicks in.
+        try {
+          const refreshResponse = await client.post('/auth/refresh-token');
+          setCsrfToken(refreshResponse.data.csrfToken);
+        } catch {
+          // Non-fatal — authFetch still recovers on the first mutating call.
+        }
       } catch (error) {
         // No valid session cookie (or it expired) — stay logged out.
         setUser(null);
@@ -69,13 +87,16 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Error calling logout endpoint:', error);
     }
+    setCsrfToken(null);
     setUser(null);
   };
 
-  // Refreshes the access token cookie using the refresh token cookie.
+  // Refreshes the access token cookie using the refresh token cookie, and
+  // updates the in-memory csrfToken to match the freshly issued one.
   const refreshToken = async () => {
     try {
-      await client.post('/auth/refresh-token');
+      const response = await client.post('/auth/refresh-token');
+      setCsrfToken(response.data.csrfToken);
     } catch (error) {
       await logout();
       throw error;

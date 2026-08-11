@@ -150,6 +150,47 @@ const isQuestionValid = (q, answer, index, allQuestions, responses) => {
   return true;
 };
 
+const readCsrfCookie = () => {
+  const match = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+// The access token (and the csrfToken cookie tied to it) live only 1h —
+// see Enova-backend/api/auth/auth.session.controller.js. A survey can
+// easily take longer than that to finish (someone opens the link, gets
+// interrupted, comes back later), so a submit made with a stale csrfToken
+// gets a 401/403 back. Unlike every other authenticated call in the app
+// (which goes through AuthContext's authFetch and retries after a token
+// refresh), this is a bare fetch — so without this retry, a slow survey
+// would fail on submit and silently drop all the user's answers.
+const submitSurveyResponse = async (accessToken, responseData, alreadyRetried = false) => {
+  const csrfToken = readCsrfCookie();
+  const res = await fetch(
+    `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+      },
+      body: JSON.stringify(responseData),
+    }
+  );
+
+  if (!res.ok && (res.status === 401 || res.status === 403) && !alreadyRetried) {
+    const refreshRes = await fetch('https://enova-backend.onrender.com/api/auth/refresh-token', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    if (refreshRes.ok) {
+      return submitSurveyResponse(accessToken, responseData, true);
+    }
+  }
+
+  return res;
+};
+
 // ─── Hook principal ───────────────────────────────────────────────────────────
 export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onResponseError }) => {
   const normalizedQuestions = useMemo(() => {
@@ -235,24 +276,10 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
         return { questionId, answer: responses[q.questionId] };
       });
 
-      const csrfMatch = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);
-      const csrfToken = csrfMatch ? decodeURIComponent(csrfMatch[1]) : null;
-
       // Usamos o endpoint estrito (/respond): valida cada resposta contra o
       // schema da pergunta e normaliza a opção "Outro" para texto legível
       // nos resultados — o /respond-permissive não faz nenhuma das duas coisas.
-      const res = await fetch(
-        `https://enova-backend.onrender.com/api/surveys/respond?accessToken=${accessToken}`,
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-          },
-          body: JSON.stringify(responseData),
-        }
-      );
+      const res = await submitSurveyResponse(accessToken, responseData);
       if (!res.ok) {
         const txt = await res.text();
         let msg = txt;

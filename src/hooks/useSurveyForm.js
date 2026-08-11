@@ -284,7 +284,9 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
         const txt = await res.text();
         let msg = txt;
         try { msg = JSON.parse(txt)?.message ?? txt; } catch {}
-        throw new Error(msg || 'Error al enviar respuestas');
+        const error = new Error(msg || 'Error al enviar respuestas');
+        error.status = res.status;
+        throw error;
       }
       setShowSuccessModal(true);
       if (onResponseSuccess) onResponseSuccess();
@@ -296,6 +298,12 @@ export const useSurveyForm = ({ survey, accessToken, onResponseSuccess, onRespon
         setSubmitError('¡Ya respondiste esta encuesta. Gracias!');
       } else if (msg.includes('response limit') || msg.includes('limit')) {
         setSubmitError('Esta encuesta alcanzó el límite de respuestas.');
+      } else if (err.status === 401 || err.status === 403) {
+        // Session/CSRF still invalid even after the refresh-and-retry in
+        // submitSurveyResponse — the refresh token itself is gone too
+        // (very old session, or a cookie-hostile browser/webview). Show
+        // something actionable instead of the raw backend error text.
+        setSubmitError('Tu sesión expiró. Por favor, vuelve a iniciar sesión e intenta enviar tus respuestas de nuevo.');
       } else {
         setSubmitError(msg || 'No pudimos enviar tus respuestas. Intenta de nuevo.');
       }

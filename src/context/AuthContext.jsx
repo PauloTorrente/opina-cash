@@ -86,7 +86,15 @@ export const AuthProvider = ({ children }) => {
     try {
       return await client({ ...options, url });
     } catch (error) {
-      if (error.response && error.response.status === 401) {
+      // 401 means the access token itself expired; 403 is what the backend
+      // sends for a stale/missing CSRF token (see auth.user.middleware.js) —
+      // which happens whenever the access token (and the csrfToken cookie
+      // tied to its 1h lifetime, see auth.session.controller.js) outlives
+      // how long the user spent on the page before submitting. Both are
+      // fixed the same way: refresh, which reissues a matching csrfToken
+      // cookie, then retry once.
+      const status = error.response?.status;
+      if (status === 401 || status === 403) {
         await refreshToken();
         return client({ ...options, url });
       }
